@@ -26,19 +26,18 @@ else
 	verbosity="-vvvv"
 fi
 
-if [ "$gas" = false ];
-then
-    gasReport=""
+if [ "$gas" = false ]; then
+	gasReport=""
 else
-    gasReport="--gas-report"
+	gasReport="--gas-report"
 fi
 
 if [ -z "$test" ]; then
 	if [ -z "$directory" ]; then
-		forge test --match-path "test/*" $gasReport $verbosity
+		forge test --match-path "test/*" $gasReport $verbosity --force
 	else
-		forge test --match-path "$directory/*.t.sol" $gasReport $verbosity
+		forge test --match-path "$directory/*.t.sol" $gasReport $verbosity --force
 	fi
 else
-	forge test --match-test "$test" $gasReport $verbosity
+	forge test --match-test "$test" $gasReport $verbosity --force
 fi
