@@ -2,10 +2,11 @@
 pragma solidity 0.8.26;
 
 import { console } from "../../lib/forge-std/src/console.sol";
+import { Script } from "../../lib/forge-std/src/Script.sol";
 
-import { DeployBase } from "./DeployBase.sol";
+import { DeployMUSDBase } from "./DeployMUSDBase.sol";
 
-contract DeployMUSD is DeployBase {
+contract DeployMUSD is DeployMUSDBase, Script {
     function run() external {
         address deployer = vm.rememberKey(vm.envUint("PRIVATE_KEY"));
 

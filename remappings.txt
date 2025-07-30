@@ -1,2 +1,2 @@
-forge-std/=lib/evm-m-extensions/lib/forge-std/src/
+@openzeppelin/contracts/=lib/common/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/
 

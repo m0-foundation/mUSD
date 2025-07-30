@@ -5,11 +5,11 @@ import { Test } from "../../lib/forge-std/src/Test.sol";
 
 import { UnsafeUpgrades } from "../../lib/evm-m-extensions/lib/openzeppelin-foundry-upgrades/src/Upgrades.sol";
 
-import { DeployBase } from "../../script/deploy/DeployBase.sol";
+import { DeployMUSDBase } from "../../script/deploy/DeployMUSDBase.sol";
 
 import { MUSDUpgrade } from "../utils/Mocks.sol";
 
-contract DeployTests is DeployBase, Test {
+contract DeployTests is DeployMUSDBase, Test {
     uint256 public mainnetFork;
 
     address public constant DEPLOYER = 0xF2f1ACbe0BA726fEE8d75f3E32900526874740BB; // M0 deployer address
