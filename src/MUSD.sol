@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.26;
 
-import {
-    PausableUpgradeable
-} from "../lib/evm-m-extensions/lib/common/lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol";
+import { PausableUpgradeable } from "../lib/evm-m-extensions/lib/common/lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol";
 
 import { MYieldToOne } from "../lib/evm-m-extensions/src/projects/yieldToOne/MYieldToOne.sol";
 import { IMYieldToOne } from "../lib/evm-m-extensions/src/projects/yieldToOne/IMYieldToOne.sol";

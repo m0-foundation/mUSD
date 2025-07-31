@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import {
-    IAccessControl
-} from "../../lib/evm-m-extensions/lib/common/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/access/IAccessControl.sol";
+import { IAccessControl } from "../../lib/evm-m-extensions/lib/common/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/access/IAccessControl.sol";
 
-import {
-    PausableUpgradeable
-} from "../../lib/evm-m-extensions/lib/common/lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol";
+import { PausableUpgradeable } from "../../lib/evm-m-extensions/lib/common/lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol";
 
 import { IERC20 } from "../../lib/forge-std/src/interfaces/IERC20.sol";
 
@@ -17,7 +13,6 @@ import { IMYieldToOne } from "../../lib/evm-m-extensions/src/projects/yieldToOne
 
 import { BaseUnitTest } from "../../lib/evm-m-extensions/test/utils/BaseUnitTest.sol";
 
-import { MUSD } from "../../src/MUSD.sol";
 import { MUSDHarness } from "../harness/MUSDHarness.sol";
 
 contract MUSDUnitTests is BaseUnitTest {
@@ -36,7 +31,7 @@ contract MUSDUnitTests is BaseUnitTest {
                 "MUSDHarness.sol:MUSDHarness",
                 admin,
                 abi.encodeWithSelector(
-                    MUSD.initialize.selector,
+                    MUSDHarness.initialize.selector,
                     yieldRecipient,
                     admin,
                     blacklistManager,
