@@ -12,9 +12,10 @@ contract MUSDHarness is MUSD {
         address admin,
         address blacklistManager,
         address yieldRecipientManager,
-        address pauser
+        address pauser,
+        address forcedTransferManager
     ) public override initializer {
-        super.initialize(yieldRecipient, admin, blacklistManager, yieldRecipientManager, pauser);
+        super.initialize(yieldRecipient, admin, blacklistManager, yieldRecipientManager, pauser, forcedTransferManager);
     }
 
     function setBalanceOf(address account, uint256 amount) external {

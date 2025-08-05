@@ -19,6 +19,9 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
     /// @inheritdoc IMUSD
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
+    /// @inheritdoc IMUSD
+    bytes32 public constant FORCED_TRANSFER_MANAGER_ROLE = keccak256("FORCED_TRANSFER_MANAGER_ROLE");
+
     /* ============ Constructor ============ */
 
     /**
@@ -45,10 +48,17 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
         address admin,
         address blacklistManager,
         address yieldRecipientManager,
-        address pauser
+        address pauser,
+        address forcedTransferManager
     ) public virtual initializer {
+        if (pauser == address(0)) revert ZeroPauser();
+        if (forcedTransferManager == address(0)) revert ZeroForcedTransferManager();
+
         __MYieldToOne_init("MUSD", "mUSD", yieldRecipient, admin, blacklistManager, yieldRecipientManager);
+        __Pausable_init();
+
         _grantRole(PAUSER_ROLE, pauser);
+        _grantRole(FORCED_TRANSFER_MANAGER_ROLE, forcedTransferManager);
     }
 
     /* ============ Interactive Functions ============ */
@@ -68,6 +78,30 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
         _unpause();
     }
 
+    /// @inheritdoc IMUSD
+    function forceTransfer(
+        address blacklistedAccount,
+        address recipient,
+        uint256 amount
+    ) external onlyRole(FORCED_TRANSFER_MANAGER_ROLE) {
+        _forceTransfer(blacklistedAccount, recipient, amount);
+    }
+
+    /// @inheritdoc IMUSD
+    function forceTransfers(
+        address[] calldata blacklistedAccounts,
+        address[] calldata recipients,
+        uint256[] calldata amounts
+    ) external onlyRole(FORCED_TRANSFER_MANAGER_ROLE) {
+        if (blacklistedAccounts.length != recipients.length || blacklistedAccounts.length != amounts.length) {
+            revert ArrayLengthMismatch();
+        }
+
+        for (uint256 i; i < blacklistedAccounts.length; ++i) {
+            _forceTransfer(blacklistedAccounts[i], recipients[i], amounts[i]);
+        }
+    }
+
     /* ============ Hooks For Internal Interactive Functions ============ */
 
     /**
@@ -78,6 +112,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
      */
     function _beforeWrap(address account, address recipient, uint256 amount) internal view override {
         _requireNotPaused();
+
         super._beforeWrap(account, recipient, amount);
     }
 
@@ -88,6 +123,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
      */
     function _beforeUnwrap(address account, uint256 amount) internal view override {
         _requireNotPaused();
+
         super._beforeUnwrap(account, amount);
     }
 
@@ -99,6 +135,31 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
      */
     function _beforeTransfer(address sender, address recipient, uint256 amount) internal view override {
         _requireNotPaused();
+
         super._beforeTransfer(sender, recipient, amount);
+    }
+
+    /* ============ Internal Interactive Functions ============ */
+
+    /**
+     * @dev   Internal ERC20 force transfer function to seize funds from a blacklisted account.
+     * @param blacklistedAccount The sender's address.
+     * @param recipient          The recipient's address.
+     * @param amount             The amount to be transferred.
+     * @dev force transfer is only allowed for blacklisted accounts.
+     * @dev No `_beforeTransfer` checks apply to forced transfers; ignore checks for paused and blacklisted states.
+     */
+    function _forceTransfer(address blacklistedAccount, address recipient, uint256 amount) internal {
+        _revertIfInvalidRecipient(recipient);
+        _revertIfNotBlacklisted(_getBlacklistableStorageLocation(), blacklistedAccount);
+
+        emit Transfer(blacklistedAccount, recipient, amount);
+        emit ForcedTransfer(blacklistedAccount, recipient, msg.sender, amount);
+
+        if (amount == 0) return;
+
+        _revertIfInsufficientBalance(blacklistedAccount, balanceOf(blacklistedAccount), amount);
+
+        _update(blacklistedAccount, recipient, amount);
     }
 }

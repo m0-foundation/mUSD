@@ -15,6 +15,7 @@ contract DeployMUSD is DeployMUSDBase, Script {
         address blacklistManager = vm.envAddress("BLACKLIST_MANAGER");
         address yieldRecipientManager = vm.envAddress("YIELD_RECIPIENT_MANAGER");
         address pauser = vm.envAddress("PAUSER");
+        address forcedTransferManager = vm.envAddress("FORCED_TRANSFER_MANAGER");
 
         vm.startBroadcast(deployer);
 
@@ -26,7 +27,8 @@ contract DeployMUSD is DeployMUSDBase, Script {
             admin,
             blacklistManager,
             yieldRecipientManager,
-            pauser
+            pauser,
+            forcedTransferManager
         );
 
         vm.stopBroadcast();
