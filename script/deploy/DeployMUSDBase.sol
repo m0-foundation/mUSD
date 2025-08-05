@@ -34,6 +34,8 @@ abstract contract DeployMUSDBase is DeployHelpers {
 
         implementation = Upgrades.deployImplementation("MUSD.sol:MUSD", deployOptions);
 
+        bytes32 salt = _computeSalt(deployer, "MUSD");
+
         proxy = _deployCreate3TransparentProxy(
             implementation,
             admin,
@@ -46,7 +48,7 @@ abstract contract DeployMUSDBase is DeployHelpers {
                 pauser,
                 forceTransferManager
             ),
-            _computeSalt(deployer, "MUSD")
+            salt
         );
 
         proxyAdmin = Upgrades.getAdminAddress(proxy);
