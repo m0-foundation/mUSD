@@ -142,7 +142,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
     /* ============ Internal Interactive Functions ============ */
 
     /**
-     * @dev   Internal ERC20 force transfer function to seizure funds from a blacklisted account.
+     * @dev   Internal ERC20 force transfer function to seize funds from a blacklisted account.
      * @param blacklistedAccount The sender's address.
      * @param recipient          The recipient's address.
      * @param amount             The amount to be transferred.

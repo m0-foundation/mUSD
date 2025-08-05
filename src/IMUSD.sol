@@ -48,7 +48,7 @@ interface IMUSD {
     function unpause() external;
 
     /**
-     * @notice Forcefully transfers tokens from a blacklisted accounts to a recipients.
+     * @notice Forcefully transfers tokens from blacklisted accounts to recipients.
      * @dev    Can only be called by an account with the FORCED_TRANSFER_MANAGER_ROLE.
      * @param  blacklistedAccounts The addresses of the blacklisted accounts.
      * @param  recipients The addresses of the recipients.
