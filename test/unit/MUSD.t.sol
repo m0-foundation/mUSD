@@ -26,6 +26,8 @@ contract MUSDUnitTests is BaseUnitTest {
     string public constant NAME = "MUSD";
     string public constant SYMBOL = "mUSD";
 
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+
     address public pauser = makeAddr("pauser");
     address public forcedTransferManager = makeAddr("forcedTransferManager");
 
