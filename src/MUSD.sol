@@ -20,7 +20,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     /// @inheritdoc IMUSD
-    bytes32 public constant FORCE_TRANSFER_MANAGER_ROLE = keccak256("FORCE_TRANSFER_MANAGER_ROLE");
+    bytes32 public constant FORCED_TRANSFER_MANAGER_ROLE = keccak256("FORCED_TRANSFER_MANAGER_ROLE");
 
     /* ============ Constructor ============ */
 
@@ -49,16 +49,16 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
         address blacklistManager,
         address yieldRecipientManager,
         address pauser,
-        address forceTransferManager
+        address forcedTransferManager
     ) public virtual initializer {
         if (pauser == address(0)) revert ZeroPauser();
-        if (forceTransferManager == address(0)) revert ZeroForceTransferManager();
+        if (forcedTransferManager == address(0)) revert ZeroForcedTransferManager();
 
         __MYieldToOne_init("MUSD", "mUSD", yieldRecipient, admin, blacklistManager, yieldRecipientManager);
         __Pausable_init();
 
         _grantRole(PAUSER_ROLE, pauser);
-        _grantRole(FORCE_TRANSFER_MANAGER_ROLE, forceTransferManager);
+        _grantRole(FORCED_TRANSFER_MANAGER_ROLE, forcedTransferManager);
     }
 
     /* ============ Interactive Functions ============ */
@@ -83,7 +83,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
         address blacklistedAccount,
         address recipient,
         uint256 amount
-    ) external onlyRole(FORCE_TRANSFER_MANAGER_ROLE) {
+    ) external onlyRole(FORCED_TRANSFER_MANAGER_ROLE) {
         _forceTransfer(blacklistedAccount, recipient, amount);
     }
 
@@ -92,7 +92,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
         address[] calldata blacklistedAccounts,
         address[] calldata recipients,
         uint256[] calldata amounts
-    ) external onlyRole(FORCE_TRANSFER_MANAGER_ROLE) {
+    ) external onlyRole(FORCED_TRANSFER_MANAGER_ROLE) {
         if (blacklistedAccounts.length != recipients.length || blacklistedAccounts.length != amounts.length) {
             revert ArrayLengthMismatch();
         }

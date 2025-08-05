@@ -13,12 +13,12 @@ interface IMUSD {
      * @notice Emitted when tokens are forcefully transferred from a blacklisted account.
      * @param  blacklistedAccount The address of the blacklisted account.
      * @param  recipient The address of the recipient.
-     * @param  forceTransferManager The address of the force transfer manager that triggered the event.
+     * @param  forcedTransferManager The address of the force transfer manager that triggered the event.
      */
     event ForcedTransfer(
         address indexed blacklistedAccount,
         address indexed recipient,
-        address indexed forceTransferManager,
+        address indexed forcedTransferManager,
         uint256 amount
     );
 
@@ -28,7 +28,7 @@ interface IMUSD {
     error ZeroPauser();
 
     /// @notice Emitted in constructor if Force Transfer Manager is 0x0.
-    error ZeroForceTransferManager();
+    error ZeroForcedTransferManager();
 
     /// @notice Emitted when the length of the input arrays do not match in `forceTransfer` method.
     error ArrayLengthMismatch();
@@ -49,7 +49,7 @@ interface IMUSD {
 
     /**
      * @notice Forcefully transfers tokens from a blacklisted accounts to a recipients.
-     * @dev    Can only be called by an account with the FORCE_TRANSFER_MANAGER_ROLE.
+     * @dev    Can only be called by an account with the FORCED_TRANSFER_MANAGER_ROLE.
      * @param  blacklistedAccounts The addresses of the blacklisted accounts.
      * @param  recipients The addresses of the recipients.
      * @param  amounts The amounts of tokens to transfer.
@@ -62,7 +62,7 @@ interface IMUSD {
 
     /**
      * @notice Forcefully transfers tokens from a blacklisted account to a recipient.
-     * @dev    Can only be called by an account with the FORCE_TRANSFER_MANAGER_ROLE.
+     * @dev    Can only be called by an account with the FORCED_TRANSFER_MANAGER_ROLE.
      * @param  blacklistedAccount The address of the blacklisted account.
      * @param  recipient The address of the recipient.
      * @param  amount The amount of tokens to transfer.
@@ -75,5 +75,5 @@ interface IMUSD {
     function PAUSER_ROLE() external view returns (bytes32);
 
     /// @notice The role that can force transfer tokens from blacklisted accounts.
-    function FORCE_TRANSFER_MANAGER_ROLE() external view returns (bytes32);
+    function FORCED_TRANSFER_MANAGER_ROLE() external view returns (bytes32);
 }

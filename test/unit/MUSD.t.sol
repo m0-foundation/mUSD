@@ -22,7 +22,7 @@ contract MUSDUnitTests is BaseUnitTest {
     string public constant SYMBOL = "mUSD";
 
     address public pauser = makeAddr("pauser");
-    address public forceTransferManager = makeAddr("forceTransferManager");
+    address public forcedTransferManager = makeAddr("forcedTransferManager");
 
     function setUp() public override {
         super.setUp();
@@ -38,7 +38,7 @@ contract MUSDUnitTests is BaseUnitTest {
                     blacklistManager,
                     yieldRecipientManager,
                     pauser,
-                    forceTransferManager
+                    forcedTransferManager
                 ),
                 mExtensionDeployOptions
             )
