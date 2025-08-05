@@ -147,7 +147,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
      * @param recipient          The recipient's address.
      * @param amount             The amount to be transferred.
      * @dev force transfer is only allowed for blacklisted accounts.
-     * @dev No `_beforeTransfer` checks apply to standard transfers; ignore checks for paused and blacklisted states.
+     * @dev No `_beforeTransfer` checks apply to forced transfers; ignore checks for paused and blacklisted states.
      */
     function _forceTransfer(address blacklistedAccount, address recipient, uint256 amount) internal {
         _revertIfInvalidRecipient(recipient);

@@ -14,6 +14,7 @@ interface IMUSD {
      * @param  blacklistedAccount The address of the blacklisted account.
      * @param  recipient The address of the recipient.
      * @param  forcedTransferManager The address of the force transfer manager that triggered the event.
+     * @param  amount The amount of tokens transferred.
      */
     event ForcedTransfer(
         address indexed blacklistedAccount,
