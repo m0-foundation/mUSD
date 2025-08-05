@@ -9,7 +9,12 @@ import { IERC20 } from "../../lib/forge-std/src/interfaces/IERC20.sol";
 
 import { Upgrades } from "../../lib/evm-m-extensions/lib/openzeppelin-foundry-upgrades/src/Upgrades.sol";
 
+import { IERC20Extended } from "../../lib/common/src/interfaces/IERC20Extended.sol";
 import { IMYieldToOne } from "../../lib/evm-m-extensions/src/projects/yieldToOne/IMYieldToOne.sol";
+import { IBlacklistable } from "../../lib/evm-m-extensions/src/components/IBlacklistable.sol";
+import { IMExtension } from "../../lib/evm-m-extensions/src/interfaces/IMExtension.sol";
+
+import { IMUSD } from "../../src/IMUSD.sol";
 
 import { BaseUnitTest } from "../../lib/evm-m-extensions/test/utils/BaseUnitTest.sol";
 
@@ -256,5 +261,133 @@ contract MUSDUnitTests is BaseUnitTest {
 
         assertEq(mUSD.balanceOf(alice), 0);
         assertEq(mUSD.balanceOf(bob), amount_);
+    }
+
+    /* ============ forceTransfer ============ */
+
+    function test_forceTransfer_revertWhenNotForcedTransferManager() external {
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                admin,
+                mUSD.FORCED_TRANSFER_MANAGER_ROLE()
+            )
+        );
+
+        vm.prank(admin);
+        mUSD.forceTransfer(alice, bob, 1e6);
+    }
+
+    function test_forceTransfer_revertWhenAccountNotBlacklisted() external {
+        vm.expectRevert(abi.encodeWithSelector(IBlacklistable.AccountNotBlacklisted.selector, alice));
+
+        vm.prank(forcedTransferManager);
+        mUSD.forceTransfer(alice, bob, 1e6);
+    }
+
+    function test_forceTransfer_revertWhenInvalidRecipient() external {
+        vm.prank(blacklistManager);
+        mUSD.blacklist(alice);
+
+        vm.expectRevert(abi.encodeWithSelector(IERC20Extended.InvalidRecipient.selector, address(0)));
+
+        vm.prank(forcedTransferManager);
+        mUSD.forceTransfer(alice, address(0), 0);
+    }
+
+    function test_forceTransfer_revertWhenInsufficientBalance() external {
+        uint256 amount_ = 1_000e6;
+        mUSD.setBalanceOf(alice, amount_);
+
+        vm.prank(blacklistManager);
+        mUSD.blacklist(alice);
+
+        vm.expectRevert(abi.encodeWithSelector(IMExtension.InsufficientBalance.selector, alice, amount_, 2 * amount_));
+
+        vm.prank(forcedTransferManager);
+        mUSD.forceTransfer(alice, bob, 2 * amount_);
+    }
+
+    function test_forceTransfer() external {
+        uint256 amount_ = 1_000e6;
+        mUSD.setBalanceOf(alice, amount_);
+
+        vm.prank(blacklistManager);
+        mUSD.blacklist(alice);
+
+        vm.expectEmit();
+        emit IERC20.Transfer(alice, bob, amount_);
+
+        vm.expectEmit();
+        emit IMUSD.ForcedTransfer(alice, bob, forcedTransferManager, amount_);
+
+        vm.prank(forcedTransferManager);
+        mUSD.forceTransfer(alice, bob, amount_);
+
+        assertEq(mUSD.balanceOf(alice), 0);
+        assertEq(mUSD.balanceOf(bob), amount_);
+    }
+
+    /* ============ forceTransfers ============ */
+
+    function test_forceTransfers_revertWhenNotForcedTransferManager() external {
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                admin,
+                mUSD.FORCED_TRANSFER_MANAGER_ROLE()
+            )
+        );
+
+        vm.prank(admin);
+        mUSD.forceTransfers(new address[](0), new address[](0), new uint256[](0));
+    }
+
+    function test_forceTransfers_revertWhenArrayLengthMismatch_v1() external {
+        vm.expectRevert(IMUSD.ArrayLengthMismatch.selector);
+
+        vm.prank(forcedTransferManager);
+        mUSD.forceTransfers(new address[](1), new address[](0), new uint256[](0));
+    }
+
+    function test_forceTransfers_revertWhenArrayLengthMismatch_v2() external {
+        vm.expectRevert(IMUSD.ArrayLengthMismatch.selector);
+
+        vm.prank(forcedTransferManager);
+        mUSD.forceTransfers(new address[](0), new address[](0), new uint256[](1));
+    }
+
+    function test_forceTransfers() external {
+        uint256 amount_ = 1_000e6;
+        mUSD.setBalanceOf(alice, amount_);
+        mUSD.setBalanceOf(bob, amount_);
+
+        vm.prank(blacklistManager);
+        mUSD.blacklist(alice);
+
+        vm.prank(blacklistManager);
+        mUSD.blacklist(bob);
+
+        vm.expectEmit();
+        emit IERC20.Transfer(alice, forcedTransferManager, amount_);
+
+        vm.expectEmit();
+        emit IMUSD.ForcedTransfer(alice, forcedTransferManager, forcedTransferManager, amount_);
+
+        vm.prank(forcedTransferManager);
+        mUSD.forceTransfer(alice, forcedTransferManager, amount_);
+
+        vm.expectEmit();
+        emit IERC20.Transfer(bob, forcedTransferManager, amount_);
+
+        vm.expectEmit();
+        emit IMUSD.ForcedTransfer(bob, forcedTransferManager, forcedTransferManager, amount_);
+
+        vm.prank(forcedTransferManager);
+        mUSD.forceTransfer(bob, forcedTransferManager, amount_);
+
+        assertEq(mUSD.balanceOf(alice), 0);
+        assertEq(mUSD.balanceOf(bob), 0);
+        assertEq(mUSD.balanceOf(forcedTransferManager), 2 * amount_);
     }
 }
