@@ -21,6 +21,8 @@ contract MUSDUnitTests is BaseUnitTest {
     string public constant NAME = "MUSD";
     string public constant SYMBOL = "mUSD";
 
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+
     address public pauser = makeAddr("pauser");
 
     function setUp() public override {
@@ -58,7 +60,7 @@ contract MUSDUnitTests is BaseUnitTest {
         assertTrue(IAccessControl(address(mUSD)).hasRole(DEFAULT_ADMIN_ROLE, admin));
         assertTrue(IAccessControl(address(mUSD)).hasRole(BLACKLIST_MANAGER_ROLE, blacklistManager));
         assertTrue(IAccessControl(address(mUSD)).hasRole(YIELD_RECIPIENT_MANAGER_ROLE, yieldRecipientManager));
-        assertTrue(IAccessControl(address(mUSD)).hasRole(mUSD.PAUSER_ROLE(), pauser));
+        assertTrue(IAccessControl(address(mUSD)).hasRole(PAUSER_ROLE, pauser));
     }
 
     /* ============ claimYield ============ */
