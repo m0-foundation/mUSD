@@ -5,6 +5,7 @@ import { PausableUpgradeable } from "../lib/evm-m-extensions/lib/common/lib/open
 
 import { MYieldToOne } from "../lib/evm-m-extensions/src/projects/yieldToOne/MYieldToOne.sol";
 import { IMYieldToOne } from "../lib/evm-m-extensions/src/projects/yieldToOne/IMYieldToOne.sol";
+import { ISwapFacility } from "../lib/evm-m-extensions/src/swap/interfaces/ISwapFacility.sol";
 
 import { IMUSD } from "./IMUSD.sol";
 
@@ -22,6 +23,9 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
     /// @inheritdoc IMUSD
     bytes32 public constant FORCED_TRANSFER_MANAGER_ROLE = keccak256("FORCED_TRANSFER_MANAGER_ROLE");
 
+    /// @inheritdoc IMUSD
+    bytes32 public constant MUSD_SWAPPER_ROLE = keccak256("MUSD_SWAPPER_ROLE");
+
     /* ============ Constructor ============ */
 
     /**
@@ -37,11 +41,13 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
 
     /**
      * @dev   Initializes the MUSD token.
-     * @param yieldRecipient        The address of a yield destination.
-     * @param admin                 The address of an admin.
-     * @param blacklistManager      The address of a blacklist manager.
-     * @param yieldRecipientManager The address of a yield recipient setter.
-     * @param pauser                The address of a pauser.
+     * @param yieldRecipient           The address of a yield destination.
+     * @param admin                    The address of an admin.
+     * @param blacklistManager         The address of a blacklist manager.
+     * @param yieldRecipientManager    The address of a yield recipient setter.
+     * @param pauser                   The address of a pauser.
+     * @param forcedTransferManager    The address of a forced transfer manager.
+     * @param swapper                  The address authorized to swap to/from mUSD.
      */
     function initialize(
         address yieldRecipient,
@@ -49,16 +55,19 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
         address blacklistManager,
         address yieldRecipientManager,
         address pauser,
-        address forcedTransferManager
+        address forcedTransferManager,
+        address swapper
     ) public virtual initializer {
         if (pauser == address(0)) revert ZeroPauser();
         if (forcedTransferManager == address(0)) revert ZeroForcedTransferManager();
+        if (swapper == address(0)) revert ZeroMUSDSwapper();
 
         __MYieldToOne_init("MUSD", "mUSD", yieldRecipient, admin, blacklistManager, yieldRecipientManager);
         __Pausable_init();
 
         _grantRole(PAUSER_ROLE, pauser);
         _grantRole(FORCED_TRANSFER_MANAGER_ROLE, forcedTransferManager);
+        _grantRole(MUSD_SWAPPER_ROLE, swapper);
     }
 
     /* ============ Interactive Functions ============ */
@@ -112,6 +121,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
      */
     function _beforeWrap(address account, address recipient, uint256 amount) internal view override {
         _requireNotPaused();
+        _revertIfNotApprovedSwapper(account);
 
         super._beforeWrap(account, recipient, amount);
     }
@@ -123,6 +133,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
      */
     function _beforeUnwrap(address account, uint256 amount) internal view override {
         _requireNotPaused();
+        _revertIfNotApprovedSwapper(account);
 
         super._beforeUnwrap(account, amount);
     }
@@ -161,5 +172,15 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
         _revertIfInsufficientBalance(blacklistedAccount, balanceOf(blacklistedAccount), amount);
 
         _update(blacklistedAccount, recipient, amount);
+    }
+
+    /* ============ Internal View/Pure Functions ============ */
+
+    /**
+     * @dev   Checks if the account is authorized to swap to/from mUSD.
+     * @param account The account that is swapping to/from mUSD.
+     */
+    function _revertIfNotApprovedSwapper(address account) internal view {
+        if (!hasRole(MUSD_SWAPPER_ROLE, account)) revert NotApprovedSwapper(account);
     }
 }

@@ -10,15 +10,18 @@ import { IMTokenLike } from "../../lib/evm-m-extensions/src/interfaces/IMTokenLi
 
 import { BaseIntegrationTest } from "../../lib/evm-m-extensions/test/utils/BaseIntegrationTest.sol";
 
+import { IMUSD } from "../../src/IMUSD.sol";
+
 import { MUSDHarness } from "../harness/MUSDHarness.sol";
 
 contract MUSDIntegrationTests is BaseIntegrationTest {
     uint256 public mainnetFork;
 
-    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-
     address public pauser = makeAddr("pauser");
     address public forcedTransferManager = makeAddr("forcedTransferManager");
+
+    address public swapper;
+    uint256 public swapperKey;
 
     MUSDHarness public mUSD;
 
@@ -27,7 +30,14 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
 
         super.setUp();
 
+        (swapper, swapperKey) = makeAddrAndKey("swapper");
+
         _fundAccounts();
+        _giveM(swapper, 10e6);
+        _giveEth(swapper, 0.1 ether);
+
+        vm.prank(admin);
+        swapFacility.grantRole(M_SWAPPER_ROLE, swapper);
 
         mUSD = MUSDHarness(
             Upgrades.deployTransparentProxy(
@@ -40,7 +50,8 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
                     blacklistManager,
                     yieldRecipientManager,
                     pauser,
-                    forcedTransferManager
+                    forcedTransferManager,
+                    swapper
                 ),
                 mExtensionDeployOptions
             )
@@ -58,7 +69,9 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         assertTrue(IAccessControl(address(mUSD)).hasRole(DEFAULT_ADMIN_ROLE, admin));
         assertTrue(IAccessControl(address(mUSD)).hasRole(BLACKLIST_MANAGER_ROLE, blacklistManager));
         assertTrue(IAccessControl(address(mUSD)).hasRole(YIELD_RECIPIENT_MANAGER_ROLE, yieldRecipientManager));
-        assertTrue(IAccessControl(address(mUSD)).hasRole(PAUSER_ROLE, pauser));
+        assertTrue(IAccessControl(address(mUSD)).hasRole(mUSD.PAUSER_ROLE(), pauser));
+        assertTrue(IAccessControl(address(mUSD)).hasRole(mUSD.FORCED_TRANSFER_MANAGER_ROLE(), forcedTransferManager));
+        assertTrue(IAccessControl(address(mUSD)).hasRole(mUSD.MUSD_SWAPPER_ROLE(), swapper));
     }
 
     function test_yieldAccumulationAndClaim() external {
@@ -74,10 +87,10 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         vm.warp(vm.getBlockTimestamp() + 1 days);
 
         // Wrap from non-earner account
-        _swapInM(address(mUSD), alice, alice, amount);
+        _swapInM(address(mUSD), swapper, swapper, amount);
 
-        // Check balances of MUSD and Alice after wrapping
-        assertEq(mUSD.balanceOf(alice), amount); // user receives exact amount
+        // Check balances of MUSD and swapper after wrapping
+        assertEq(mUSD.balanceOf(swapper), amount); // user receives exact amount
         assertApproxEqAbs(mToken.balanceOf(address(mUSD)), amount, 2); // rounds down
 
         // Fast forward 10 days in the future to generate yield
@@ -87,30 +100,26 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         assertEq(mUSD.yield(), 11375);
 
         // Transfers do not affect yield
-        vm.prank(alice);
+        vm.prank(swapper);
         mUSD.transfer(bob, amount / 2);
 
         assertEq(mUSD.balanceOf(bob), amount / 2);
-        assertEq(mUSD.balanceOf(alice), amount / 2);
+        assertEq(mUSD.balanceOf(swapper), amount / 2);
 
         // Yield stays the same
         assertEq(mUSD.yield(), 11375);
 
         // Unwraps
-        _swapMOut(address(mUSD), alice, alice, amount / 2);
+        _swapMOut(address(mUSD), swapper, swapper, amount / 2);
 
-        // Alice receives exact amount but mUSD loses 1 wei
+        // swapper receives exact amount but mUSD loses 1 wei
         // due to rounding up in M when transferring from an earner to a non-earner
         assertEq(mUSD.yield(), 11374);
 
-        _swapMOut(address(mUSD), bob, bob, amount / 2);
-
-        assertEq(mUSD.yield(), 11373);
-
-        assertEq(mUSD.balanceOf(bob), 0);
-        assertEq(mUSD.balanceOf(alice), 0);
-        assertEq(mToken.balanceOf(bob), amount + amount / 2);
-        assertEq(mToken.balanceOf(alice), amount / 2);
+        assertEq(mUSD.balanceOf(bob), amount / 2);
+        assertEq(mUSD.balanceOf(swapper), 0);
+        assertEq(mToken.balanceOf(bob), amount);
+        assertEq(mToken.balanceOf(swapper), amount / 2);
 
         assertEq(mUSD.balanceOf(yieldRecipient), 0);
 
@@ -118,22 +127,22 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         vm.prank(yieldRecipientManager);
         mUSD.claimYield();
 
-        assertEq(mUSD.balanceOf(yieldRecipient), 11373);
+        assertEq(mUSD.balanceOf(yieldRecipient), 11374);
         assertEq(mUSD.yield(), 0);
-        assertEq(mToken.balanceOf(address(mUSD)), 11373);
-        assertEq(mUSD.totalSupply(), 11373);
+        assertEq(mToken.balanceOf(address(mUSD)), amount / 2 + 11374);
+        assertEq(mUSD.totalSupply(), amount / 2 + 11374);
 
         // Wrap from earner account
-        _addToList(EARNERS_LIST, bob);
+        _addToList(EARNERS_LIST, swapper);
 
-        vm.prank(bob);
+        vm.prank(swapper);
         mToken.startEarning();
 
-        _swapInM(address(mUSD), bob, bob, amount);
+        _swapInM(address(mUSD), swapper, swapper, amount / 2 - 1); // Account for the rounding error
 
-        // Check balances of MUSD and Bob after wrapping
-        assertEq(mUSD.balanceOf(bob), amount);
-        assertEq(mToken.balanceOf(address(mUSD)), 11373 + amount);
+        // Check balances of MUSD and swapper after wrapping
+        assertEq(mUSD.balanceOf(swapper), amount / 2 - 1);
+        assertEq(mToken.balanceOf(address(mUSD)), 11374 + amount - 1);
 
         // Disable earning for the contract
         _removeFromList(EARNERS_LIST, address(mUSD));
@@ -180,24 +189,24 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         _addToList(EARNERS_LIST, address(mUSD));
         mUSD.enableEarning();
 
-        assertEq(mToken.balanceOf(alice), 10e6);
+        assertEq(mToken.balanceOf(swapper), 10e6);
 
-        _swapInM(address(mUSD), alice, alice, 5e6);
+        _swapInM(address(mUSD), swapper, swapper, 5e6);
 
-        assertEq(mUSD.balanceOf(alice), 5e6);
+        assertEq(mUSD.balanceOf(swapper), 5e6);
         assertEq(mUSD.totalSupply(), 5e6);
 
-        assertEq(mToken.balanceOf(alice), 5e6);
+        assertEq(mToken.balanceOf(swapper), 5e6);
         assertApproxEqAbs(mToken.balanceOf(address(mUSD)), 5e6, 1);
 
         assertEq(mUSD.yield(), 0);
 
-        _swapInM(address(mUSD), alice, alice, 5e6);
+        _swapInM(address(mUSD), swapper, swapper, 5e6);
 
-        assertEq(mUSD.balanceOf(alice), 10e6);
+        assertEq(mUSD.balanceOf(swapper), 10e6);
         assertEq(mUSD.totalSupply(), 10e6);
 
-        assertEq(mToken.balanceOf(alice), 0);
+        assertEq(mToken.balanceOf(swapper), 0);
         assertApproxEqAbs(mToken.balanceOf(address(mUSD)), 10e6, 2);
 
         assertEq(mUSD.yield(), 0);
@@ -207,24 +216,37 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
 
         assertEq(mUSD.yield(), 42_3730);
 
-        assertEq(mUSD.balanceOf(alice), 10e6);
+        assertEq(mUSD.balanceOf(swapper), 10e6);
         assertEq(mUSD.totalSupply(), 10e6);
     }
 
     function test_wrapWithPermits() external {
         _addToList(EARNERS_LIST, address(mUSD));
 
-        assertEq(mToken.balanceOf(alice), 10e6);
+        assertEq(mToken.balanceOf(swapper), 10e6);
 
-        _swapInMWithPermitVRS(address(mUSD), alice, aliceKey, alice, 5e6, 0, block.timestamp);
+        _swapInMWithPermitVRS(address(mUSD), swapper, swapperKey, swapper, 5e6, 0, block.timestamp);
 
-        assertEq(mUSD.balanceOf(alice), 5e6);
-        assertEq(mToken.balanceOf(alice), 5e6);
+        assertEq(mUSD.balanceOf(swapper), 5e6);
+        assertEq(mToken.balanceOf(swapper), 5e6);
 
-        _swapInMWithPermitSignature(address(mUSD), alice, aliceKey, alice, 5e6, 1, block.timestamp);
+        _swapInMWithPermitSignature(address(mUSD), swapper, swapperKey, swapper, 5e6, 1, block.timestamp);
 
-        assertEq(mUSD.balanceOf(alice), 10e6);
-        assertEq(mToken.balanceOf(alice), 0);
+        assertEq(mUSD.balanceOf(swapper), 10e6);
+        assertEq(mToken.balanceOf(swapper), 0);
+    }
+
+    function test_wrap_notApprovedSwapper() external {
+        _addToList(EARNERS_LIST, address(mUSD));
+        mUSD.enableEarning();
+
+        vm.prank(alice);
+        mToken.approve(address(swapFacility), 10e6);
+
+        vm.expectRevert(abi.encodeWithSelector(IMUSD.NotApprovedSwapper.selector, alice));
+
+        vm.prank(alice);
+        swapFacility.swapInM(address(mUSD), 10e6, alice);
     }
 
     /* ============ unwrap ============ */
@@ -233,14 +255,14 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         _addToList(EARNERS_LIST, address(mUSD));
         mUSD.enableEarning();
 
-        mUSD.setBalanceOf(alice, 10e6);
+        mUSD.setBalanceOf(swapper, 10e6);
         mUSD.setTotalSupply(10e6);
         _giveM(address(mUSD), 10e6);
 
         // 2 wei are lost due to rounding
         assertApproxEqAbs(mToken.balanceOf(address(mUSD)), 10e6, 2);
-        assertEq(mToken.balanceOf(alice), 10e6);
-        assertEq(mUSD.balanceOf(alice), 10e6);
+        assertEq(mToken.balanceOf(swapper), 10e6);
+        assertEq(mUSD.balanceOf(swapper), 10e6);
         assertEq(mUSD.totalSupply(), 10e6);
 
         // Move time forward to generate yield
@@ -248,23 +270,23 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
 
         assertEq(mUSD.yield(), 42_3730);
 
-        _swapMOut(address(mUSD), alice, alice, 5e6);
+        _swapMOut(address(mUSD), swapper, swapper, 5e6);
 
         assertApproxEqAbs(mToken.balanceOf(address(mUSD)), 42_3730 + 5e6, 1);
-        assertEq(mToken.balanceOf(alice), 15e6);
-        assertEq(mUSD.balanceOf(alice), 5e6);
+        assertEq(mToken.balanceOf(swapper), 15e6);
+        assertEq(mUSD.balanceOf(swapper), 5e6);
         assertEq(mUSD.totalSupply(), 5e6);
 
-        _swapMOut(address(mUSD), alice, alice, 5e6);
+        _swapMOut(address(mUSD), swapper, swapper, 5e6);
 
-        assertEq(mToken.balanceOf(alice), 20e6);
+        assertEq(mToken.balanceOf(swapper), 20e6);
 
-        // Alice's full withdrawal would have reverted without yield.
+        // swapper's full withdrawal would have reverted without yield.
         // The 2 wei lost due to rounding were covered by the yield.
         assertEq(mUSD.yield(), 42_3730 - 2);
         assertEq(mToken.balanceOf(address(mUSD)), 42_3730 - 2);
 
-        assertEq(mUSD.balanceOf(alice), 0);
+        assertEq(mUSD.balanceOf(swapper), 0);
         assertEq(mUSD.totalSupply(), 0);
     }
 
@@ -272,22 +294,39 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         _addToList(EARNERS_LIST, address(mUSD));
         mUSD.enableEarning();
 
-        mUSD.setBalanceOf(alice, 11e6);
+        mUSD.setBalanceOf(swapper, 11e6);
         mUSD.setTotalSupply(11e6);
         _giveM(address(mUSD), 11e6);
 
-        assertEq(mToken.balanceOf(alice), 10e6);
-        assertEq(mUSD.balanceOf(alice), 11e6);
+        assertEq(mToken.balanceOf(swapper), 10e6);
+        assertEq(mUSD.balanceOf(swapper), 11e6);
 
-        _swapOutMWithPermitVRS(address(mUSD), alice, aliceKey, alice, 5e6, 0, block.timestamp);
+        _swapOutMWithPermitVRS(address(mUSD), swapper, swapperKey, swapper, 5e6, 0, block.timestamp);
 
-        assertEq(mUSD.balanceOf(alice), 6e6);
-        assertEq(mToken.balanceOf(alice), 15e6);
+        assertEq(mUSD.balanceOf(swapper), 6e6);
+        assertEq(mToken.balanceOf(swapper), 15e6);
 
-        _swapOutMWithPermitSignature(address(mUSD), alice, aliceKey, alice, 5e6, 1, block.timestamp);
+        _swapOutMWithPermitSignature(address(mUSD), swapper, swapperKey, swapper, 5e6, 1, block.timestamp);
 
-        assertEq(mUSD.balanceOf(alice), 1e6);
-        assertEq(mToken.balanceOf(alice), 20e6);
+        assertEq(mUSD.balanceOf(swapper), 1e6);
+        assertEq(mToken.balanceOf(swapper), 20e6);
+    }
+
+    function test_unwrap_notApprovedSwapper() external {
+        _addToList(EARNERS_LIST, address(mUSD));
+        mUSD.enableEarning();
+
+        mUSD.setBalanceOf(alice, 10e6);
+        mUSD.setTotalSupply(10e6);
+        _giveM(address(mUSD), 10e6);
+
+        vm.prank(alice);
+        mUSD.approve(address(swapFacility), 10e6);
+
+        vm.expectRevert(abi.encodeWithSelector(IMUSD.NotApprovedSwapper.selector, alice));
+
+        vm.prank(alice);
+        swapFacility.swapOutM(address(mUSD), 10e6, alice);
     }
 
     /* ============ claimYield ============ */

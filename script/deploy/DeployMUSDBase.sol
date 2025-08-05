@@ -28,7 +28,8 @@ abstract contract DeployMUSDBase is DeployHelpers {
         address blacklistManager,
         address yieldRecipientManager,
         address pauser,
-        address forcedTransferManager
+        address forcedTransferManager,
+        address swapper
     ) internal returns (address implementation, address proxy, address proxyAdmin) {
         deployOptions.constructorData = abi.encode(address(mToken), address(swapFacility));
 
@@ -46,7 +47,8 @@ abstract contract DeployMUSDBase is DeployHelpers {
                 blacklistManager,
                 yieldRecipientManager,
                 pauser,
-                forcedTransferManager
+                forcedTransferManager,
+                swapper
             ),
             salt
         );

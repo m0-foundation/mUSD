@@ -20,6 +20,7 @@ contract DeployTests is DeployMUSDBase, Test {
     address public yieldRecipientManager = makeAddr("yieldRecipientManager");
     address public pauser = makeAddr("pauser");
     address public forcedTransferManager = makeAddr("forcedTransferManager");
+    address public swapper = makeAddr("swapper");
 
     function setUp() public {
         mainnetFork = vm.createFork(vm.envString("MAINNET_RPC_URL"));
@@ -43,7 +44,8 @@ contract DeployTests is DeployMUSDBase, Test {
             blacklistManager,
             yieldRecipientManager,
             pauser,
-            forcedTransferManager
+            forcedTransferManager,
+            swapper
         );
 
         vm.stopPrank();
@@ -67,7 +69,8 @@ contract DeployTests is DeployMUSDBase, Test {
             blacklistManager,
             yieldRecipientManager,
             pauser,
-            forcedTransferManager
+            forcedTransferManager,
+            swapper
         );
 
         UnsafeUpgrades.upgradeProxy(proxy, address(new MUSDUpgrade()), "", admin);

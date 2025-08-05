@@ -31,8 +31,14 @@ interface IMUSD {
     /// @notice Emitted in constructor if Force Transfer Manager is 0x0.
     error ZeroForcedTransferManager();
 
+    /// @notice Emitted in constructor if MUSD Swapper is 0x0.
+    error ZeroMUSDSwapper();
+
     /// @notice Emitted when the length of the input arrays do not match in `forceTransfer` method.
     error ArrayLengthMismatch();
+
+    /// @notice Emitted when the caller is not approved to swap to/from mUSD.
+    error NotApprovedSwapper(address account);
 
     /* ============ Interactive Functions ============ */
 
@@ -74,6 +80,9 @@ interface IMUSD {
 
     /// @notice The role that can pause and unpause the contract.
     function PAUSER_ROLE() external view returns (bytes32);
+
+    /// @notice The role that can swap to/from mUSD.
+    function MUSD_SWAPPER_ROLE() external view returns (bytes32);
 
     /// @notice The role that can force transfer tokens from blacklisted accounts.
     function FORCED_TRANSFER_MANAGER_ROLE() external view returns (bytes32);

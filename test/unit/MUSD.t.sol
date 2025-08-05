@@ -13,6 +13,7 @@ import { IERC20Extended } from "../../lib/common/src/interfaces/IERC20Extended.s
 import { IMYieldToOne } from "../../lib/evm-m-extensions/src/projects/yieldToOne/IMYieldToOne.sol";
 import { IBlacklistable } from "../../lib/evm-m-extensions/src/components/IBlacklistable.sol";
 import { IMExtension } from "../../lib/evm-m-extensions/src/interfaces/IMExtension.sol";
+import { ISwapFacility } from "../../lib/evm-m-extensions/src/swap/interfaces/ISwapFacility.sol";
 
 import { IMUSD } from "../../src/IMUSD.sol";
 
@@ -26,10 +27,9 @@ contract MUSDUnitTests is BaseUnitTest {
     string public constant NAME = "MUSD";
     string public constant SYMBOL = "mUSD";
 
-    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-
     address public pauser = makeAddr("pauser");
     address public forcedTransferManager = makeAddr("forcedTransferManager");
+    address public swapper = makeAddr("swapper");
 
     function setUp() public override {
         super.setUp();
@@ -45,7 +45,8 @@ contract MUSDUnitTests is BaseUnitTest {
                     blacklistManager,
                     yieldRecipientManager,
                     pauser,
-                    forcedTransferManager
+                    forcedTransferManager,
+                    swapper
                 ),
                 mExtensionDeployOptions
             )
@@ -69,6 +70,7 @@ contract MUSDUnitTests is BaseUnitTest {
         assertTrue(IAccessControl(address(mUSD)).hasRole(YIELD_RECIPIENT_MANAGER_ROLE, yieldRecipientManager));
         assertTrue(IAccessControl(address(mUSD)).hasRole(mUSD.PAUSER_ROLE(), pauser));
         assertTrue(IAccessControl(address(mUSD)).hasRole(mUSD.FORCED_TRANSFER_MANAGER_ROLE(), forcedTransferManager));
+        assertTrue(IAccessControl(address(mUSD)).hasRole(mUSD.MUSD_SWAPPER_ROLE(), swapper));
     }
 
     /* ============ claimYield ============ */
@@ -163,6 +165,15 @@ contract MUSDUnitTests is BaseUnitTest {
         mUSD.wrap(alice, 1e6);
     }
 
+    function test_wrap_notApprovedSwapper() external {
+        vm.expectRevert(abi.encodeWithSelector(IMUSD.NotApprovedSwapper.selector, alice));
+
+        vm.mockCall(address(swapFacility), abi.encodeWithSelector(ISwapFacility.msgSender.selector), abi.encode(alice));
+
+        vm.prank(address(swapFacility));
+        mUSD.wrap(alice, 1e6);
+    }
+
     function test_wrap() external {
         uint256 amount_ = 1_000e6;
         mToken.setBalanceOf(address(swapFacility), amount_);
@@ -174,6 +185,12 @@ contract MUSDUnitTests is BaseUnitTest {
 
         vm.expectEmit();
         emit IERC20.Transfer(address(0), alice, amount_);
+
+        vm.mockCall(
+            address(swapFacility),
+            abi.encodeWithSelector(ISwapFacility.msgSender.selector),
+            abi.encode(swapper)
+        );
 
         vm.prank(address(swapFacility));
         mUSD.wrap(alice, amount_);
@@ -197,6 +214,15 @@ contract MUSDUnitTests is BaseUnitTest {
         mUSD.unwrap(alice, 1e6);
     }
 
+    function test_unwrap_notApprovedSwapper() external {
+        vm.expectRevert(abi.encodeWithSelector(IMUSD.NotApprovedSwapper.selector, alice));
+
+        vm.mockCall(address(swapFacility), abi.encodeWithSelector(ISwapFacility.msgSender.selector), abi.encode(alice));
+
+        vm.prank(address(swapFacility));
+        mUSD.unwrap(alice, 1e6);
+    }
+
     function test_unwrap() external {
         uint256 amount_ = 1_000e6;
 
@@ -209,6 +235,12 @@ contract MUSDUnitTests is BaseUnitTest {
         vm.expectEmit();
         emit IERC20.Transfer(address(swapFacility), address(0), 1e6);
 
+        vm.mockCall(
+            address(swapFacility),
+            abi.encodeWithSelector(ISwapFacility.msgSender.selector),
+            abi.encode(swapper)
+        );
+
         vm.prank(address(swapFacility));
         mUSD.unwrap(alice, 1e6);
 
@@ -219,6 +251,12 @@ contract MUSDUnitTests is BaseUnitTest {
         vm.expectEmit();
         emit IERC20.Transfer(address(swapFacility), address(0), 499e6);
 
+        vm.mockCall(
+            address(swapFacility),
+            abi.encodeWithSelector(ISwapFacility.msgSender.selector),
+            abi.encode(swapper)
+        );
+
         vm.prank(address(swapFacility));
         mUSD.unwrap(alice, 499e6);
 
@@ -228,6 +266,12 @@ contract MUSDUnitTests is BaseUnitTest {
 
         vm.expectEmit();
         emit IERC20.Transfer(address(swapFacility), address(0), 500e6);
+
+        vm.mockCall(
+            address(swapFacility),
+            abi.encodeWithSelector(ISwapFacility.msgSender.selector),
+            abi.encode(swapper)
+        );
 
         vm.prank(address(swapFacility));
         mUSD.unwrap(alice, 500e6);
