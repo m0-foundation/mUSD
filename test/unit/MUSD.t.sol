@@ -37,7 +37,7 @@ contract MUSDUnitTests is BaseUnitTest {
                     admin,
                     blacklistManager,
                     yieldRecipientManager,
-                    pauser, 
+                    pauser,
                     forceTransferManager
                 ),
                 mExtensionDeployOptions

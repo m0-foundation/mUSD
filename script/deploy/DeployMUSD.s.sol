@@ -27,7 +27,7 @@ contract DeployMUSD is DeployMUSDBase, Script {
             admin,
             blacklistManager,
             yieldRecipientManager,
-            pauser, 
+            pauser,
             forceTransferManager
         );
 

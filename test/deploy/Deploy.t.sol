@@ -66,7 +66,7 @@ contract DeployTests is DeployMUSDBase, Test {
             admin,
             blacklistManager,
             yieldRecipientManager,
-            pauser, 
+            pauser,
             forceTransferManager
         );
 

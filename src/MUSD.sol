@@ -48,7 +48,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
         address admin,
         address blacklistManager,
         address yieldRecipientManager,
-        address pauser, 
+        address pauser,
         address forceTransferManager
     ) public virtual initializer {
         if (pauser == address(0)) revert ZeroPauser();
@@ -79,12 +79,20 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
     }
 
     /// @inheritdoc IMUSD
-    function forceTransfer(address blacklistedAccount, address recipient, uint256 amount) external onlyRole(FORCE_TRANSFER_MANAGER_ROLE) {
+    function forceTransfer(
+        address blacklistedAccount,
+        address recipient,
+        uint256 amount
+    ) external onlyRole(FORCE_TRANSFER_MANAGER_ROLE) {
         _forceTransfer(blacklistedAccount, recipient, amount);
     }
 
     /// @inheritdoc IMUSD
-    function forceTransfers(address[] calldata blacklistedAccounts, address[] calldata recipients, uint256[] calldata amounts) external onlyRole(FORCE_TRANSFER_MANAGER_ROLE) {
+    function forceTransfers(
+        address[] calldata blacklistedAccounts,
+        address[] calldata recipients,
+        uint256[] calldata amounts
+    ) external onlyRole(FORCE_TRANSFER_MANAGER_ROLE) {
         if (blacklistedAccounts.length != recipients.length || blacklistedAccounts.length != amounts.length) {
             revert ArrayLengthMismatch();
         }
@@ -131,32 +139,27 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
         super._beforeTransfer(sender, recipient, amount);
     }
 
-     /* ============ Internal Interactive Functions ============ */
+    /* ============ Internal Interactive Functions ============ */
 
     /**
      * @dev   Internal ERC20 force transfer function to seizure funds from a blacklisted account.
      * @param blacklistedAccount The sender's address.
      * @param recipient          The recipient's address.
      * @param amount             The amount to be transferred.
+     * @dev force transfer is only allowed for blacklisted accounts.
+     * @dev No `_beforeTransfer` checks apply to standard transfers; ignore checks for paused and blacklisted states.
      */
     function _forceTransfer(address blacklistedAccount, address recipient, uint256 amount) internal {
         _revertIfInvalidRecipient(recipient);
-
-        // NOTE: force transfer is only allowed for blacklisted accounts.
         _revertIfNotBlacklisted(blacklistedAccount);
 
-        // NOTE: No `_beforeTransfer` checks apply to standard transfers; ignore checks for paused and blacklisted states.
-
         emit Transfer(blacklistedAccount, recipient, amount);
+        emit ForcedTransfer(blacklistedAccount, recipient, msg.sender, amount);
 
         if (amount == 0) return;
 
         _revertIfInsufficientBalance(blacklistedAccount, balanceOf(blacklistedAccount), amount);
 
-        // NOTE: This method will be overridden by the inheriting M Extension contract.
         _update(blacklistedAccount, recipient, amount);
-
-        emit ForcedTransfer(blacklistedAccount, recipient, msg.sender, amount);
     }
-
 }

@@ -54,10 +54,14 @@ interface IMUSD {
      * @param  recipients The addresses of the recipients.
      * @param  amounts The amounts of tokens to transfer.
      */
-    function forceTransfers(address[] calldata blacklistedAccounts, address[] calldata recipients, uint256[] calldata amounts) external;
+    function forceTransfers(
+        address[] calldata blacklistedAccounts,
+        address[] calldata recipients,
+        uint256[] calldata amounts
+    ) external;
 
-
-    /**     * @notice Forcefully transfers tokens from a blacklisted account to a recipient.
+    /**
+     * @notice Forcefully transfers tokens from a blacklisted account to a recipient.
      * @dev    Can only be called by an account with the FORCE_TRANSFER_MANAGER_ROLE.
      * @param  blacklistedAccount The address of the blacklisted account.
      * @param  recipient The address of the recipient.
@@ -71,5 +75,5 @@ interface IMUSD {
     function PAUSER_ROLE() external view returns (bytes32);
 
     /// @notice The role that can force transfer tokens from blacklisted accounts.
-    function FORCE_TRANSFER_MANAGER_ROLE() external view returns (bytes32);   
+    function FORCE_TRANSFER_MANAGER_ROLE() external view returns (bytes32);
 }

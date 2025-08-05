@@ -12,7 +12,7 @@ contract MUSDHarness is MUSD {
         address admin,
         address blacklistManager,
         address yieldRecipientManager,
-        address pauser, 
+        address pauser,
         address forceTransferManager
     ) public override initializer {
         super.initialize(yieldRecipient, admin, blacklistManager, yieldRecipientManager, pauser, forceTransferManager);
