@@ -151,7 +151,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
      */
     function _forceTransfer(address blacklistedAccount, address recipient, uint256 amount) internal {
         _revertIfInvalidRecipient(recipient);
-        _revertIfNotBlacklisted(blacklistedAccount);
+        _revertIfNotBlacklisted(_getBlacklistableStorageLocation(), blacklistedAccount);
 
         emit Transfer(blacklistedAccount, recipient, amount);
         emit ForcedTransfer(blacklistedAccount, recipient, msg.sender, amount);
