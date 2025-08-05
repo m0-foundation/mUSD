@@ -27,6 +27,7 @@
         "strict": true
       }
     ],
+    "use-natspec": "off",
     "visibility-modifier-order": "error"
   }
 }
