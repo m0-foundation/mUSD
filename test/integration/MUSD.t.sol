@@ -12,6 +12,8 @@ import { BaseIntegrationTest } from "../../lib/evm-m-extensions/test/utils/BaseI
 
 import { MUSDHarness } from "../harness/MUSDHarness.sol";
 
+import { IBlacklistable } from "../../lib/evm-m-extensions/src/components/IBlacklistable.sol";
+
 contract MUSDIntegrationTests is BaseIntegrationTest {
     uint256 public mainnetFork;
 
@@ -371,5 +373,114 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         mUSD.claimYield();
 
         assertEq(mUSD.balanceOf(yieldRecipient), yield);
+    }
+
+    function test_blacklistManagers() external {
+        uint256 amount = 10e6;
+
+        // Enable earning for the contract
+        _addToList(EARNERS_LIST, address(mUSD));
+        mUSD.enableEarning();
+
+        // Check initial earning state
+        assertEq(mToken.isEarning(address(mUSD)), true);
+
+        vm.warp(vm.getBlockTimestamp() + 1 days);
+
+        _swapInM(address(mUSD), alice, alice, amount);
+
+        assertEq(mUSD.balanceOf(alice), amount);
+        assertApproxEqAbs(mToken.balanceOf(address(mUSD)), amount, 2);
+
+        vm.warp(vm.getBlockTimestamp() + 10 days);
+
+        assertEq(mUSD.yield(), 11375);
+
+        vm.prank(blacklistManager);
+        mUSD.blacklist(alice);
+
+        assertTrue(mUSD.isBlacklisted(alice));
+
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(IBlacklistable.AccountBlacklisted.selector, alice));
+        mUSD.transfer(bob, amount);
+
+        vm.prank(blacklistManager);
+        mUSD.unblacklist(alice);
+
+        assertFalse(mUSD.isBlacklisted(alice));
+
+        vm.prank(alice);
+        mUSD.transfer(bob, amount);
+
+        assertEq(mUSD.balanceOf(alice), 0);
+        assertEq(mUSD.balanceOf(bob), amount);
+
+        vm.prank(blacklistManager);
+        mUSD.blacklist(bob);
+
+        assertTrue(mUSD.isBlacklisted(bob));
+
+        vm.prank(bob);
+        vm.expectRevert(abi.encodeWithSelector(IBlacklistable.AccountBlacklisted.selector, bob));
+        mUSD.approve(alice, amount);
+
+        vm.prank(blacklistManager);
+        mUSD.unblacklist(bob);
+
+        assertFalse(mUSD.isBlacklisted(bob));
+
+        vm.prank(bob);
+        mUSD.approve(alice, amount);
+
+        assertEq(mUSD.allowance(bob, alice), amount);
+
+        vm.prank(blacklistManager);
+        mUSD.blacklist(alice);
+
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(IBlacklistable.AccountBlacklisted.selector, alice));
+        mUSD.transferFrom(bob, alice, amount);
+
+        vm.prank(bob);
+        vm.expectRevert(abi.encodeWithSelector(IBlacklistable.AccountBlacklisted.selector, alice));
+        mUSD.transfer(alice, amount);
+
+        vm.prank(blacklistManager);
+        mUSD.unblacklist(alice);
+
+        vm.prank(alice);
+        mUSD.transferFrom(bob, alice, amount);
+
+        assertEq(mUSD.balanceOf(alice), amount);
+        assertEq(mUSD.balanceOf(bob), 0);
+
+        bytes32 BLACKLIST_MANAGER_ROLE = mUSD.BLACKLIST_MANAGER_ROLE();
+
+        address blacklistManager2 = makeAddr("blacklistManager2");
+
+        vm.prank(admin);
+        mUSD.grantRole(BLACKLIST_MANAGER_ROLE, blacklistManager2);
+
+        vm.prank(blacklistManager2);
+        mUSD.blacklist(bob);
+
+        assertTrue(mUSD.isBlacklisted(bob));
+
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(IBlacklistable.AccountBlacklisted.selector, bob));
+        mUSD.transfer(bob, amount);
+    }
+
+    function test_notBlacklistManager() external {
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                alice,
+                BLACKLIST_MANAGER_ROLE
+            )
+        );
+        mUSD.blacklist(bob);
     }
 }
