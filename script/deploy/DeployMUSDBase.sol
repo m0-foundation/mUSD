@@ -13,9 +13,8 @@ abstract contract DeployMUSDBase is DeployHelpers {
     /// @dev Same address across all supported mainnet and testnets networks.
     address public constant M_TOKEN = 0x866A2BF4E572CbcF37D5071A7a58503Bfb36be1b;
 
-    // TODO: Replace with actual address when deployed
     /// @dev Same address across all supported mainnet and testnets networks.
-    address public constant SWAP_FACILITY = 0x78678C4Ab4C32d1b4c2514ea2c8ebe7F8a363140;
+    address public constant SWAP_FACILITY = 0xB6807116b3B1B321a390594e31ECD6e0076f6278;
 
     Options public deployOptions;
 
