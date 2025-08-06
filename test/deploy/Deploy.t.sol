@@ -11,6 +11,7 @@ import { MUSDUpgrade } from "../utils/Mocks.sol";
 
 contract DeployTests is DeployMUSDBase, Test {
     uint256 public mainnetFork;
+    uint256 public lineaFork;
 
     address public constant DEPLOYER = 0xF2f1ACbe0BA726fEE8d75f3E32900526874740BB; // M0 deployer address
 
@@ -23,6 +24,7 @@ contract DeployTests is DeployMUSDBase, Test {
 
     function setUp() public {
         mainnetFork = vm.createFork(vm.envString("MAINNET_RPC_URL"));
+        lineaFork = vm.createFork(vm.envString("LINEA_RPC_URL"));
     }
 
     /* ============ Deploy ============ */
@@ -51,10 +53,56 @@ contract DeployTests is DeployMUSDBase, Test {
         assertEq(proxy, _getCreate3Address(DEPLOYER, _computeSalt(DEPLOYER, "MUSD")));
     }
 
+    function testFork_deployLineaMainnet() external {
+        vm.selectFork(lineaFork);
+
+        vm.deal(DEPLOYER, 100 ether);
+
+        vm.startPrank(DEPLOYER);
+
+        (, address proxy, ) = _deployMUSD(
+            DEPLOYER,
+            M_TOKEN,
+            SWAP_FACILITY,
+            yieldRecipient,
+            admin,
+            blacklistManager,
+            yieldRecipientManager,
+            pauser,
+            forcedTransferManager
+        );
+
+        vm.stopPrank();
+
+        assertEq(proxy, _getCreate3Address(DEPLOYER, _computeSalt(DEPLOYER, "MUSD")));
+    }
+
     /* ============ Upgrade ============ */
 
-    function testFork_upgrade() external {
+    function testFork_upgradeEthereumMainnet() external {
         vm.selectFork(mainnetFork);
+
+        vm.deal(DEPLOYER, 100 ether);
+
+        (, address proxy, ) = _deployMUSD(
+            DEPLOYER,
+            M_TOKEN,
+            SWAP_FACILITY,
+            yieldRecipient,
+            admin,
+            blacklistManager,
+            yieldRecipientManager,
+            pauser,
+            forcedTransferManager
+        );
+
+        UnsafeUpgrades.upgradeProxy(proxy, address(new MUSDUpgrade()), "", admin);
+
+        assertEq(MUSDUpgrade(proxy).bar(), 1);
+    }
+
+    function testFork_upgradeLineaMainnet() external {
+        vm.selectFork(lineaFork);
 
         vm.deal(DEPLOYER, 100 ether);
 
