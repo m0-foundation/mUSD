@@ -5,7 +5,7 @@
 [submodule "lib/evm-m-extensions"]
 	path = lib/evm-m-extensions
 	url = https://github.com/m0-foundation/evm-m-extensions
-	branch = chore/import-create3-helpers-from-common
+	branch = feat/small-modifications-for-musd
 [submodule "lib/common"]
 	path = lib/common
 	url = https://github.com/m0-foundation/common
