@@ -378,6 +378,8 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
     function test_blacklistManagers() external {
         uint256 amount = 10e6;
 
+        /*********** SETUP ************/
+
         // Enable earning for the contract
         _addToList(EARNERS_LIST, address(mUSD));
         mUSD.enableEarning();
@@ -395,6 +397,8 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         vm.warp(vm.getBlockTimestamp() + 10 days);
 
         assertEq(mUSD.yield(), 11375);
+
+        /*********** DONE SETUP ************/
 
         vm.prank(blacklistManager);
         mUSD.blacklist(alice);
@@ -482,5 +486,51 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
             )
         );
         mUSD.blacklist(bob);
+    }
+
+    function test_forcedTransferManager() external {
+        uint256 amount = 10e6;
+
+        mUSD.setBalanceOf(alice, amount);
+
+        vm.prank(blacklistManager);
+        mUSD.blacklist(alice);
+
+        vm.prank(forcedTransferManager);
+        mUSD.forceTransfer(alice, bob, amount);
+
+        assertEq(mUSD.balanceOf(bob), amount);
+        assertEq(mUSD.balanceOf(alice), 0);
+
+        vm.prank(forcedTransferManager);
+        vm.expectRevert(abi.encodeWithSelector(IBlacklistable.AccountNotBlacklisted.selector, bob));
+        mUSD.forceTransfer(bob, alice, amount);
+
+        mUSD.setBalanceOf(bob, amount);
+        mUSD.setBalanceOf(carol, amount);
+        mUSD.setBalanceOf(david, amount);
+
+        address[] memory accounts = new address[](3);
+        accounts[0] = bob;
+        accounts[1] = carol;
+        accounts[2] = david;
+
+        vm.prank(blacklistManager);
+        mUSD.blacklistAccounts(accounts);
+
+        address[] memory recipients = new address[](3);
+        recipients[0] = alice;
+        recipients[1] = alice;
+        recipients[2] = alice;
+
+        uint256[] memory amounts = new uint256[](3);
+        amounts[0] = amount;
+        amounts[1] = amount;
+        amounts[2] = amount;
+
+        vm.prank(forcedTransferManager);
+        mUSD.forceTransfers(accounts, recipients, amounts);
+
+        assertEq(mUSD.balanceOf(alice), amount * 3);
     }
 }
