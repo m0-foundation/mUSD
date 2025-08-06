@@ -361,36 +361,36 @@ contract MUSDUnitTests is BaseUnitTest {
     }
 
     function test_forceTransfers() external {
-        uint256 amount_ = 1_000e6;
-        mUSD.setBalanceOf(alice, amount_);
-        mUSD.setBalanceOf(bob, amount_);
+        uint256 amount1 = 1_000e6;
+        uint256 amount2 = 2_000e6;
+
+        address[] memory blacklistedAccounts = new address[](2);
+        blacklistedAccounts[0] = alice;
+        blacklistedAccounts[1] = carol;
+
+        address[] memory destinations = new address[](2);
+        destinations[0] = bob;
+        destinations[1] = charlie;
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = amount1;
+        amounts[1] = amount2;
+
+        mUSD.setBalanceOf(alice, amount1);
+        mUSD.setBalanceOf(carol, amount2);
 
         vm.prank(blacklistManager);
         mUSD.blacklist(alice);
 
         vm.prank(blacklistManager);
-        mUSD.blacklist(bob);
-
-        vm.expectEmit();
-        emit IERC20.Transfer(alice, forcedTransferManager, amount_);
-
-        vm.expectEmit();
-        emit IMUSD.ForcedTransfer(alice, forcedTransferManager, forcedTransferManager, amount_);
+        mUSD.blacklist(carol);
 
         vm.prank(forcedTransferManager);
-        mUSD.forceTransfer(alice, forcedTransferManager, amount_);
-
-        vm.expectEmit();
-        emit IERC20.Transfer(bob, forcedTransferManager, amount_);
-
-        vm.expectEmit();
-        emit IMUSD.ForcedTransfer(bob, forcedTransferManager, forcedTransferManager, amount_);
-
-        vm.prank(forcedTransferManager);
-        mUSD.forceTransfer(bob, forcedTransferManager, amount_);
+        mUSD.forceTransfers(blacklistedAccounts, destinations, amounts);
 
         assertEq(mUSD.balanceOf(alice), 0);
-        assertEq(mUSD.balanceOf(bob), 0);
-        assertEq(mUSD.balanceOf(forcedTransferManager), 2 * amount_);
+        assertEq(mUSD.balanceOf(carol), 0);
+        assertEq(mUSD.balanceOf(destinations[0]), amount1);
+        assertEq(mUSD.balanceOf(destinations[1]), amount2);
     }
 }
