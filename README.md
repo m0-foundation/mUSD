@@ -21,7 +21,7 @@ All contracts are deployed behind transparent upgradeable proxies (by default).
 
 **`MYieldToOne`** core features:
   - All yield goes to a single configurable `yieldRecipient`
-  - Includes a blacklist enforced on all user actions
+  - Includes a freeze list enforced on all user actions
   - Handles loss of `$M` earner status gracefully
 
 ---
