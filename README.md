@@ -4,11 +4,12 @@ This M extension is derived from [MYieldToOne](), an upgradeable ERC20 token con
 
 Additionally, **MUSD** includes the following functionality:
 
-- Pausing logic
-- Ability to force transfers from blacklisted accounts
-- Restrictions on who can trigger claiming of yield for `claimRecipient` .
+- Pausing logic.
+- Ability to force transfers from frozen accounts.
+- Restrictions on who can trigger claiming of yield for `claimRecipient`.
 
 ## MUSD System Design
+<img width="4702" height="5423" alt="SystemDesign" src="https://github.com/user-attachments/assets/8f5039ba-946c-4949-9768-7bfb125c90d1" />
 
 ### 🧩 M Extensions Framework 
 
@@ -16,8 +17,9 @@ Additionally, **MUSD** includes the following functionality:
 
 All contracts are deployed behind transparent upgradeable proxies (by default).
 
-- **`MYieldToOne`**
+**MUSD** is derived from **MYieldToOne**.
 
+**`MYieldToOne`** core features:
   - All yield goes to a single configurable `yieldRecipient`
   - Includes a blacklist enforced on all user actions
   - Handles loss of `$M` earner status gracefully
