@@ -39,7 +39,7 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
                     MUSDHarness.initialize.selector,
                     yieldRecipient,
                     admin,
-                    blacklistManager,
+                    freezeManager,
                     yieldRecipientManager,
                     pauser,
                     forcedTransferManager
@@ -58,7 +58,7 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         assertEq(mUSD.yieldRecipient(), yieldRecipient);
 
         assertTrue(IAccessControl(address(mUSD)).hasRole(DEFAULT_ADMIN_ROLE, admin));
-        assertTrue(IAccessControl(address(mUSD)).hasRole(BLACKLIST_MANAGER_ROLE, blacklistManager));
+        assertTrue(IAccessControl(address(mUSD)).hasRole(FREEZE_MANAGER_ROLE, freezeManager));
         assertTrue(IAccessControl(address(mUSD)).hasRole(YIELD_RECIPIENT_MANAGER_ROLE, yieldRecipientManager));
         assertTrue(IAccessControl(address(mUSD)).hasRole(PAUSER_ROLE, pauser));
     }
@@ -335,6 +335,9 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
 
         _giveM(address(mUSD), amount);
 
+        vm.prank(alice);
+        mUSD.approve(address(swapFacility), amount);
+
         vm.prank(pauser);
         mUSD.pause();
 
@@ -350,6 +353,9 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         swapFacility.swapInM(address(mUSD), amount, alice);
 
         // test unwrap
+
+        vm.expectRevert(selector);
+
         vm.prank(alice);
         mUSD.approve(address(swapFacility), amount);
 

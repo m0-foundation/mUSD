@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import { DeployHelpers } from "../../lib/common/script/deploy/DeployHelpers.sol";
+import { DeployHelpers } from "../../lib/evm-m-extensions/lib/common/script/deploy/DeployHelpers.sol";
 
 import { Options } from "../../lib/evm-m-extensions/lib/openzeppelin-foundry-upgrades/src/Options.sol";
 
@@ -24,7 +24,7 @@ abstract contract DeployMUSDBase is DeployHelpers {
         address swapFacility,
         address yieldRecipient,
         address admin,
-        address blacklistManager,
+        address freezeManager,
         address yieldRecipientManager,
         address pauser,
         address forcedTransferManager
@@ -42,7 +42,7 @@ abstract contract DeployMUSDBase is DeployHelpers {
                 MUSD.initialize.selector,
                 yieldRecipient,
                 admin,
-                blacklistManager,
+                freezeManager,
                 yieldRecipientManager,
                 pauser,
                 forcedTransferManager
