@@ -333,6 +333,9 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
 
         _giveM(address(mUSD), amount);
 
+        vm.prank(alice);
+        mUSD.approve(address(swapFacility), amount);
+
         vm.prank(pauser);
         mUSD.pause();
 
@@ -348,6 +351,9 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         swapFacility.swapInM(address(mUSD), amount, alice);
 
         // test unwrap
+
+        vm.expectRevert(selector);
+
         vm.prank(alice);
         mUSD.approve(address(swapFacility), amount);
 
