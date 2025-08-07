@@ -4,7 +4,6 @@ pragma solidity 0.8.26;
 import { PausableUpgradeable } from "../lib/evm-m-extensions/lib/common/lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol";
 
 import { MYieldToOne } from "../lib/evm-m-extensions/src/projects/yieldToOne/MYieldToOne.sol";
-import { IMYieldToOne } from "../lib/evm-m-extensions/src/projects/yieldToOne/IMYieldToOne.sol";
 
 import { IMUSD } from "./IMUSD.sol";
 
@@ -62,11 +61,6 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
     }
 
     /* ============ Interactive Functions ============ */
-
-    /// @inheritdoc IMYieldToOne
-    function claimYield() public override onlyRole(YIELD_RECIPIENT_MANAGER_ROLE) returns (uint256) {
-        return super.claimYield();
-    }
 
     /// @inheritdoc IMUSD
     function pause() public onlyRole(PAUSER_ROLE) {
@@ -139,6 +133,12 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
         super._beforeTransfer(sender, recipient, amount);
     }
 
+    /**
+     * @dev   Hook called before claiming yield.
+     * @notice MUST only be callable by the YIELD_RECIPIENT_MANAGER_ROLE.
+     */
+    function _beforeClaimYield() internal view override onlyRole(YIELD_RECIPIENT_MANAGER_ROLE) {}
+
     /* ============ Internal Interactive Functions ============ */
 
     /**
@@ -151,7 +151,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
      */
     function _forceTransfer(address blacklistedAccount, address recipient, uint256 amount) internal {
         _revertIfInvalidRecipient(recipient);
-        _revertIfNotBlacklisted(_getBlacklistableStorageLocation(), blacklistedAccount);
+        _revertIfNotBlacklisted(blacklistedAccount);
 
         emit Transfer(blacklistedAccount, recipient, amount);
         emit ForcedTransfer(blacklistedAccount, recipient, msg.sender, amount);

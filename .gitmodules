@@ -5,8 +5,8 @@
 [submodule "lib/evm-m-extensions"]
 	path = lib/evm-m-extensions
 	url = https://github.com/m0-foundation/evm-m-extensions
-	branch = chore/import-create3-helpers-from-common
+	branch = main
 [submodule "lib/common"]
 	path = lib/common
 	url = https://github.com/m0-foundation/common
-	branch = proto-313-chore-add-create3-deploy-helpers-to-common
+	branch = main
