@@ -12,7 +12,7 @@ contract DeployMUSD is DeployMUSDBase, Script {
 
         address yieldRecipient = vm.envAddress("YIELD_RECIPIENT");
         address admin = vm.envAddress("ADMIN");
-        address blacklistManager = vm.envAddress("BLACKLIST_MANAGER");
+        address freezeManager = vm.envAddress("FREEZE_MANAGER");
         address yieldRecipientManager = vm.envAddress("YIELD_RECIPIENT_MANAGER");
         address pauser = vm.envAddress("PAUSER");
         address forcedTransferManager = vm.envAddress("FORCED_TRANSFER_MANAGER");
@@ -25,7 +25,7 @@ contract DeployMUSD is DeployMUSDBase, Script {
             SWAP_FACILITY,
             yieldRecipient,
             admin,
-            blacklistManager,
+            freezeManager,
             yieldRecipientManager,
             pauser,
             forcedTransferManager

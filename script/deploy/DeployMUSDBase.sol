@@ -24,7 +24,7 @@ abstract contract DeployMUSDBase is DeployHelpers {
         address swapFacility,
         address yieldRecipient,
         address admin,
-        address blacklistManager,
+        address freezeManager,
         address yieldRecipientManager,
         address pauser,
         address forcedTransferManager
@@ -42,7 +42,7 @@ abstract contract DeployMUSDBase is DeployHelpers {
                 MUSD.initialize.selector,
                 yieldRecipient,
                 admin,
-                blacklistManager,
+                freezeManager,
                 yieldRecipientManager,
                 pauser,
                 forcedTransferManager

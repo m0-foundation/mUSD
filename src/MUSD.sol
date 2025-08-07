@@ -38,14 +38,14 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
      * @dev   Initializes the MUSD token.
      * @param yieldRecipient        The address of a yield destination.
      * @param admin                 The address of an admin.
-     * @param blacklistManager      The address of a blacklist manager.
+     * @param freezeManager         The address of a freeze manager.
      * @param yieldRecipientManager The address of a yield recipient setter.
      * @param pauser                The address of a pauser.
      */
     function initialize(
         address yieldRecipient,
         address admin,
-        address blacklistManager,
+        address freezeManager,
         address yieldRecipientManager,
         address pauser,
         address forcedTransferManager
@@ -53,7 +53,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
         if (pauser == address(0)) revert ZeroPauser();
         if (forcedTransferManager == address(0)) revert ZeroForcedTransferManager();
 
-        __MYieldToOne_init("MUSD", "mUSD", yieldRecipient, admin, blacklistManager, yieldRecipientManager);
+        __MYieldToOne_init("MUSD", "mUSD", yieldRecipient, admin, freezeManager, yieldRecipientManager);
         __Pausable_init();
 
         _grantRole(PAUSER_ROLE, pauser);
@@ -74,25 +74,25 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
 
     /// @inheritdoc IMUSD
     function forceTransfer(
-        address blacklistedAccount,
+        address frozenAccount,
         address recipient,
         uint256 amount
     ) external onlyRole(FORCED_TRANSFER_MANAGER_ROLE) {
-        _forceTransfer(blacklistedAccount, recipient, amount);
+        _forceTransfer(frozenAccount, recipient, amount);
     }
 
     /// @inheritdoc IMUSD
     function forceTransfers(
-        address[] calldata blacklistedAccounts,
+        address[] calldata frozenAccounts,
         address[] calldata recipients,
         uint256[] calldata amounts
     ) external onlyRole(FORCED_TRANSFER_MANAGER_ROLE) {
-        if (blacklistedAccounts.length != recipients.length || blacklistedAccounts.length != amounts.length) {
+        if (frozenAccounts.length != recipients.length || frozenAccounts.length != amounts.length) {
             revert ArrayLengthMismatch();
         }
 
-        for (uint256 i; i < blacklistedAccounts.length; ++i) {
-            _forceTransfer(blacklistedAccounts[i], recipients[i], amounts[i]);
+        for (uint256 i; i < frozenAccounts.length; ++i) {
+            _forceTransfer(frozenAccounts[i], recipients[i], amounts[i]);
         }
     }
 
@@ -100,9 +100,9 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
 
     /**
      * @dev   Hook called before approval of mUSD.
-     * @param account   The sender's address.
-     * @param spender   The spender's address.
-     * @param amount    The amount to be approved.
+     * @param account The sender's address.
+     * @param spender The spender's address.
+     * @param amount  The amount to be approved.
      */
     function _beforeApprove(address account, address spender, uint256 amount) internal view override {
         _requireNotPaused();
@@ -146,7 +146,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
     }
 
     /**
-     * @dev   Hook called before claiming yield.
+     * @dev    Hook called before claiming yield.
      * @notice MUST only be callable by the YIELD_RECIPIENT_MANAGER_ROLE.
      */
     function _beforeClaimYield() internal view override onlyRole(YIELD_RECIPIENT_MANAGER_ROLE) {}
@@ -154,24 +154,24 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
     /* ============ Internal Interactive Functions ============ */
 
     /**
-     * @dev   Internal ERC20 force transfer function to seize funds from a blacklisted account.
-     * @param blacklistedAccount The sender's address.
-     * @param recipient          The recipient's address.
-     * @param amount             The amount to be transferred.
-     * @dev force transfer is only allowed for blacklisted accounts.
-     * @dev No `_beforeTransfer` checks apply to forced transfers; ignore checks for paused and blacklisted states.
+     * @dev   Internal ERC20 force transfer function to seize funds from a frozen account.
+     * @param frozenAccount The frozen account from which tokens are seized.
+     * @param recipient     The recipient's address.
+     * @param amount        The amount to be transferred.
+     * @dev   Force transfer is only allowed for frozen accounts.
+     * @dev   No `_beforeTransfer` checks apply to forced transfers; ignore checks for paused and frozen states.
      */
-    function _forceTransfer(address blacklistedAccount, address recipient, uint256 amount) internal {
+    function _forceTransfer(address frozenAccount, address recipient, uint256 amount) internal {
         _revertIfInvalidRecipient(recipient);
-        _revertIfNotBlacklisted(blacklistedAccount);
+        _revertIfNotFrozen(frozenAccount);
 
-        emit Transfer(blacklistedAccount, recipient, amount);
-        emit ForcedTransfer(blacklistedAccount, recipient, msg.sender, amount);
+        emit Transfer(frozenAccount, recipient, amount);
+        emit ForcedTransfer(frozenAccount, recipient, msg.sender, amount);
 
         if (amount == 0) return;
 
-        _revertIfInsufficientBalance(blacklistedAccount, balanceOf(blacklistedAccount), amount);
+        _revertIfInsufficientBalance(frozenAccount, balanceOf(frozenAccount), amount);
 
-        _update(blacklistedAccount, recipient, amount);
+        _update(frozenAccount, recipient, amount);
     }
 }
