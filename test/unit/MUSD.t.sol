@@ -9,7 +9,7 @@ import { IERC20 } from "../../lib/forge-std/src/interfaces/IERC20.sol";
 
 import { Upgrades } from "../../lib/evm-m-extensions/lib/openzeppelin-foundry-upgrades/src/Upgrades.sol";
 
-import { IERC20Extended } from "../../lib/common/src/interfaces/IERC20Extended.sol";
+import { IERC20Extended } from "../../lib/evm-m-extensions/lib/common/src/interfaces/IERC20Extended.sol";
 import { IMYieldToOne } from "../../lib/evm-m-extensions/src/projects/yieldToOne/IMYieldToOne.sol";
 import { IBlacklistable } from "../../lib/evm-m-extensions/src/components/IBlacklistable.sol";
 import { IMExtension } from "../../lib/evm-m-extensions/src/interfaces/IMExtension.sol";
