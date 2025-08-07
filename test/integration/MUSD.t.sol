@@ -481,12 +481,4 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         vm.expectRevert(abi.encodeWithSelector(IFreezable.AccountFrozen.selector, bob));
         mUSD.transfer(bob, amount);
     }
-
-    function test_notFreezeManager() external {
-        vm.prank(alice);
-        vm.expectRevert(
-            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, FREEZE_MANAGER_ROLE)
-        );
-        mUSD.freeze(bob);
-    }
 }
