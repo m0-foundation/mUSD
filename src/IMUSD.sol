@@ -10,14 +10,14 @@ interface IMUSD {
     /* ============ Events ============ */
 
     /**
-     * @notice Emitted when tokens are forcefully transferred from a blacklisted account.
-     * @param  blacklistedAccount The address of the blacklisted account.
+     * @notice Emitted when tokens are forcefully transferred from a frozen account.
+     * @param  frozenAccount The address of the frozen account.
      * @param  recipient The address of the recipient.
      * @param  forcedTransferManager The address of the force transfer manager that triggered the event.
      * @param  amount The amount of tokens transferred.
      */
     event ForcedTransfer(
-        address indexed blacklistedAccount,
+        address indexed frozenAccount,
         address indexed recipient,
         address indexed forcedTransferManager,
         uint256 amount
@@ -49,32 +49,32 @@ interface IMUSD {
     function unpause() external;
 
     /**
-     * @notice Forcefully transfers tokens from blacklisted accounts to recipients.
+     * @notice Forcefully transfers tokens from frozen accounts to recipients.
      * @dev    Can only be called by an account with the FORCED_TRANSFER_MANAGER_ROLE.
-     * @param  blacklistedAccounts The addresses of the blacklisted accounts.
+     * @param  frozenAccounts The addresses of the frozen accounts.
      * @param  recipients The addresses of the recipients.
      * @param  amounts The amounts of tokens to transfer.
      */
     function forceTransfers(
-        address[] calldata blacklistedAccounts,
+        address[] calldata frozenAccounts,
         address[] calldata recipients,
         uint256[] calldata amounts
     ) external;
 
     /**
-     * @notice Forcefully transfers tokens from a blacklisted account to a recipient.
+     * @notice Forcefully transfers tokens from a frozen account to a recipient.
      * @dev    Can only be called by an account with the FORCED_TRANSFER_MANAGER_ROLE.
-     * @param  blacklistedAccount The address of the blacklisted account.
+     * @param  frozenAccount The address of the frozen account.
      * @param  recipient The address of the recipient.
      * @param  amount The amount of tokens to transfer.
      */
-    function forceTransfer(address blacklistedAccount, address recipient, uint256 amount) external;
+    function forceTransfer(address frozenAccount, address recipient, uint256 amount) external;
 
     /* ============ View/Pure Functions ============ */
 
     /// @notice The role that can pause and unpause the contract.
     function PAUSER_ROLE() external view returns (bytes32);
 
-    /// @notice The role that can force transfer tokens from blacklisted accounts.
+    /// @notice The role that can force transfer tokens from frozen accounts.
     function FORCED_TRANSFER_MANAGER_ROLE() external view returns (bytes32);
 }

@@ -11,7 +11,7 @@ import { Upgrades } from "../../lib/evm-m-extensions/lib/openzeppelin-foundry-up
 
 import { IERC20Extended } from "../../lib/evm-m-extensions/lib/common/src/interfaces/IERC20Extended.sol";
 import { IMYieldToOne } from "../../lib/evm-m-extensions/src/projects/yieldToOne/IMYieldToOne.sol";
-import { IBlacklistable } from "../../lib/evm-m-extensions/src/components/IBlacklistable.sol";
+import { IFreezable } from "../../lib/evm-m-extensions/src/components/IFreezable.sol";
 import { IMExtension } from "../../lib/evm-m-extensions/src/interfaces/IMExtension.sol";
 
 import { IMUSD } from "../../src/IMUSD.sol";
@@ -42,7 +42,7 @@ contract MUSDUnitTests is BaseUnitTest {
                     MUSDHarness.initialize.selector,
                     yieldRecipient,
                     admin,
-                    blacklistManager,
+                    freezeManager,
                     yieldRecipientManager,
                     pauser,
                     forcedTransferManager
@@ -65,7 +65,7 @@ contract MUSDUnitTests is BaseUnitTest {
         assertEq(mUSD.yieldRecipient(), yieldRecipient);
 
         assertTrue(IAccessControl(address(mUSD)).hasRole(DEFAULT_ADMIN_ROLE, admin));
-        assertTrue(IAccessControl(address(mUSD)).hasRole(BLACKLIST_MANAGER_ROLE, blacklistManager));
+        assertTrue(IAccessControl(address(mUSD)).hasRole(FREEZE_MANAGER_ROLE, freezeManager));
         assertTrue(IAccessControl(address(mUSD)).hasRole(YIELD_RECIPIENT_MANAGER_ROLE, yieldRecipientManager));
         assertTrue(IAccessControl(address(mUSD)).hasRole(mUSD.PAUSER_ROLE(), pauser));
         assertTrue(IAccessControl(address(mUSD)).hasRole(mUSD.FORCED_TRANSFER_MANAGER_ROLE(), forcedTransferManager));
@@ -292,16 +292,16 @@ contract MUSDUnitTests is BaseUnitTest {
         mUSD.forceTransfer(alice, bob, 1e6);
     }
 
-    function test_forceTransfer_revertWhenAccountNotBlacklisted() external {
-        vm.expectRevert(abi.encodeWithSelector(IBlacklistable.AccountNotBlacklisted.selector, alice));
+    function test_forceTransfer_revertWhenAccountNotFrozen() external {
+        vm.expectRevert(abi.encodeWithSelector(IFreezable.AccountNotFrozen.selector, alice));
 
         vm.prank(forcedTransferManager);
         mUSD.forceTransfer(alice, bob, 1e6);
     }
 
     function test_forceTransfer_revertWhenInvalidRecipient() external {
-        vm.prank(blacklistManager);
-        mUSD.blacklist(alice);
+        vm.prank(freezeManager);
+        mUSD.freeze(alice);
 
         vm.expectRevert(abi.encodeWithSelector(IERC20Extended.InvalidRecipient.selector, address(0)));
 
@@ -313,8 +313,8 @@ contract MUSDUnitTests is BaseUnitTest {
         uint256 amount_ = 1_000e6;
         mUSD.setBalanceOf(alice, amount_);
 
-        vm.prank(blacklistManager);
-        mUSD.blacklist(alice);
+        vm.prank(freezeManager);
+        mUSD.freeze(alice);
 
         vm.expectRevert(abi.encodeWithSelector(IMExtension.InsufficientBalance.selector, alice, amount_, 2 * amount_));
 
@@ -326,8 +326,8 @@ contract MUSDUnitTests is BaseUnitTest {
         uint256 amount_ = 1_000e6;
         mUSD.setBalanceOf(alice, amount_);
 
-        vm.prank(blacklistManager);
-        mUSD.blacklist(alice);
+        vm.prank(freezeManager);
+        mUSD.freeze(alice);
 
         vm.expectEmit();
         emit IERC20.Transfer(alice, bob, amount_);
@@ -375,9 +375,9 @@ contract MUSDUnitTests is BaseUnitTest {
         uint256 amount1 = 1_000e6;
         uint256 amount2 = 2_000e6;
 
-        address[] memory blacklistedAccounts = new address[](2);
-        blacklistedAccounts[0] = alice;
-        blacklistedAccounts[1] = carol;
+        address[] memory frozenAccounts = new address[](2);
+        frozenAccounts[0] = alice;
+        frozenAccounts[1] = carol;
 
         address[] memory destinations = new address[](2);
         destinations[0] = bob;
@@ -390,14 +390,14 @@ contract MUSDUnitTests is BaseUnitTest {
         mUSD.setBalanceOf(alice, amount1);
         mUSD.setBalanceOf(carol, amount2);
 
-        vm.prank(blacklistManager);
-        mUSD.blacklist(alice);
+        vm.prank(freezeManager);
+        mUSD.freeze(alice);
 
-        vm.prank(blacklistManager);
-        mUSD.blacklist(carol);
+        vm.prank(freezeManager);
+        mUSD.freeze(carol);
 
         vm.prank(forcedTransferManager);
-        mUSD.forceTransfers(blacklistedAccounts, destinations, amounts);
+        mUSD.forceTransfers(frozenAccounts, destinations, amounts);
 
         assertEq(mUSD.balanceOf(alice), 0);
         assertEq(mUSD.balanceOf(carol), 0);

@@ -37,7 +37,7 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
                     MUSDHarness.initialize.selector,
                     yieldRecipient,
                     admin,
-                    blacklistManager,
+                    freezeManager,
                     yieldRecipientManager,
                     pauser,
                     forcedTransferManager
@@ -56,7 +56,7 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         assertEq(mUSD.yieldRecipient(), yieldRecipient);
 
         assertTrue(IAccessControl(address(mUSD)).hasRole(DEFAULT_ADMIN_ROLE, admin));
-        assertTrue(IAccessControl(address(mUSD)).hasRole(BLACKLIST_MANAGER_ROLE, blacklistManager));
+        assertTrue(IAccessControl(address(mUSD)).hasRole(FREEZE_MANAGER_ROLE, freezeManager));
         assertTrue(IAccessControl(address(mUSD)).hasRole(YIELD_RECIPIENT_MANAGER_ROLE, yieldRecipientManager));
         assertTrue(IAccessControl(address(mUSD)).hasRole(PAUSER_ROLE, pauser));
     }

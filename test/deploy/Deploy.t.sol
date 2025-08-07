@@ -17,7 +17,7 @@ contract DeployTests is DeployMUSDBase, Test {
 
     address public yieldRecipient = makeAddr("yieldRecipient");
     address public admin = makeAddr("admin");
-    address public blacklistManager = makeAddr("blacklistManager");
+    address public freezeManager = makeAddr("freezeManager");
     address public yieldRecipientManager = makeAddr("yieldRecipientManager");
     address public pauser = makeAddr("pauser");
     address public forcedTransferManager = makeAddr("forcedTransferManager");
@@ -42,7 +42,7 @@ contract DeployTests is DeployMUSDBase, Test {
             SWAP_FACILITY,
             yieldRecipient,
             admin,
-            blacklistManager,
+            freezeManager,
             yieldRecipientManager,
             pauser,
             forcedTransferManager
@@ -66,7 +66,7 @@ contract DeployTests is DeployMUSDBase, Test {
             SWAP_FACILITY,
             yieldRecipient,
             admin,
-            blacklistManager,
+            freezeManager,
             yieldRecipientManager,
             pauser,
             forcedTransferManager
@@ -90,7 +90,7 @@ contract DeployTests is DeployMUSDBase, Test {
             SWAP_FACILITY,
             yieldRecipient,
             admin,
-            blacklistManager,
+            freezeManager,
             yieldRecipientManager,
             pauser,
             forcedTransferManager
@@ -112,7 +112,7 @@ contract DeployTests is DeployMUSDBase, Test {
             SWAP_FACILITY,
             yieldRecipient,
             admin,
-            blacklistManager,
+            freezeManager,
             yieldRecipientManager,
             pauser,
             forcedTransferManager
