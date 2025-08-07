@@ -12,7 +12,7 @@ import { BaseIntegrationTest } from "../../lib/evm-m-extensions/test/utils/BaseI
 
 import { MUSDHarness } from "../harness/MUSDHarness.sol";
 
-import { IBlacklistable } from "../../lib/evm-m-extensions/src/components/IBlacklistable.sol";
+import { IFreezable } from "../../lib/evm-m-extensions/src/components/IFreezable.sol";
 
 contract MUSDIntegrationTests is BaseIntegrationTest {
     uint256 public mainnetFork;
@@ -381,7 +381,7 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         assertEq(mUSD.balanceOf(yieldRecipient), yield);
     }
 
-    function test_blacklistManagers() external {
+    function test_freezeManagers() external {
         uint256 amount = 10e6;
 
         /*********** SETUP ************/
@@ -406,19 +406,19 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
 
         /*********** DONE SETUP ************/
 
-        vm.prank(blacklistManager);
-        mUSD.blacklist(alice);
+        vm.prank(freezeManager);
+        mUSD.freeze(alice);
 
-        assertTrue(mUSD.isBlacklisted(alice));
+        assertTrue(mUSD.isFrozen(alice));
 
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(IBlacklistable.AccountBlacklisted.selector, alice));
+        vm.expectRevert(abi.encodeWithSelector(IFreezable.AccountFrozen.selector, alice));
         mUSD.transfer(bob, amount);
 
-        vm.prank(blacklistManager);
-        mUSD.unblacklist(alice);
+        vm.prank(freezeManager);
+        mUSD.unfreeze(alice);
 
-        assertFalse(mUSD.isBlacklisted(alice));
+        assertFalse(mUSD.isFrozen(alice));
 
         vm.prank(alice);
         mUSD.transfer(bob, amount);
@@ -426,38 +426,38 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         assertEq(mUSD.balanceOf(alice), 0);
         assertEq(mUSD.balanceOf(bob), amount);
 
-        vm.prank(blacklistManager);
-        mUSD.blacklist(bob);
+        vm.prank(freezeManager);
+        mUSD.freeze(bob);
 
-        assertTrue(mUSD.isBlacklisted(bob));
+        assertTrue(mUSD.isFrozen(bob));
 
         vm.prank(bob);
-        vm.expectRevert(abi.encodeWithSelector(IBlacklistable.AccountBlacklisted.selector, bob));
+        vm.expectRevert(abi.encodeWithSelector(IFreezable.AccountFrozen.selector, bob));
         mUSD.approve(alice, amount);
 
-        vm.prank(blacklistManager);
-        mUSD.unblacklist(bob);
+        vm.prank(freezeManager);
+        mUSD.unfreeze(bob);
 
-        assertFalse(mUSD.isBlacklisted(bob));
+        assertFalse(mUSD.isFrozen(bob));
 
         vm.prank(bob);
         mUSD.approve(alice, amount);
 
         assertEq(mUSD.allowance(bob, alice), amount);
 
-        vm.prank(blacklistManager);
-        mUSD.blacklist(alice);
+        vm.prank(freezeManager);
+        mUSD.freeze(alice);
 
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(IBlacklistable.AccountBlacklisted.selector, alice));
+        vm.expectRevert(abi.encodeWithSelector(IFreezable.AccountFrozen.selector, alice));
         mUSD.transferFrom(bob, alice, amount);
 
         vm.prank(bob);
-        vm.expectRevert(abi.encodeWithSelector(IBlacklistable.AccountBlacklisted.selector, alice));
+        vm.expectRevert(abi.encodeWithSelector(IFreezable.AccountFrozen.selector, alice));
         mUSD.transfer(alice, amount);
 
-        vm.prank(blacklistManager);
-        mUSD.unblacklist(alice);
+        vm.prank(freezeManager);
+        mUSD.unfreeze(alice);
 
         vm.prank(alice);
         mUSD.transferFrom(bob, alice, amount);
@@ -465,78 +465,28 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         assertEq(mUSD.balanceOf(alice), amount);
         assertEq(mUSD.balanceOf(bob), 0);
 
-        bytes32 BLACKLIST_MANAGER_ROLE = mUSD.BLACKLIST_MANAGER_ROLE();
+        address freezeManager2 = makeAddr("freezeManager2");
 
-        address blacklistManager2 = makeAddr("blacklistManager2");
+        bytes32 freezeManagerRole = mUSD.FREEZE_MANAGER_ROLE();
 
         vm.prank(admin);
-        mUSD.grantRole(BLACKLIST_MANAGER_ROLE, blacklistManager2);
+        mUSD.grantRole(freezeManagerRole, freezeManager2);
 
-        vm.prank(blacklistManager2);
-        mUSD.blacklist(bob);
+        vm.prank(freezeManager2);
+        mUSD.freeze(bob);
 
-        assertTrue(mUSD.isBlacklisted(bob));
+        assertTrue(mUSD.isFrozen(bob));
 
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(IBlacklistable.AccountBlacklisted.selector, bob));
+        vm.expectRevert(abi.encodeWithSelector(IFreezable.AccountFrozen.selector, bob));
         mUSD.transfer(bob, amount);
     }
 
-    function test_notBlacklistManager() external {
+    function test_notFreezeManager() external {
         vm.prank(alice);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                alice,
-                BLACKLIST_MANAGER_ROLE
-            )
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, FREEZE_MANAGER_ROLE)
         );
-        mUSD.blacklist(bob);
-    }
-
-    function test_forcedTransferManager() external {
-        uint256 amount = 10e6;
-
-        mUSD.setBalanceOf(alice, amount);
-
-        vm.prank(blacklistManager);
-        mUSD.blacklist(alice);
-
-        vm.prank(forcedTransferManager);
-        mUSD.forceTransfer(alice, bob, amount);
-
-        assertEq(mUSD.balanceOf(bob), amount);
-        assertEq(mUSD.balanceOf(alice), 0);
-
-        vm.prank(forcedTransferManager);
-        vm.expectRevert(abi.encodeWithSelector(IBlacklistable.AccountNotBlacklisted.selector, bob));
-        mUSD.forceTransfer(bob, alice, amount);
-
-        mUSD.setBalanceOf(bob, amount);
-        mUSD.setBalanceOf(carol, amount);
-        mUSD.setBalanceOf(david, amount);
-
-        address[] memory accounts = new address[](3);
-        accounts[0] = bob;
-        accounts[1] = carol;
-        accounts[2] = david;
-
-        vm.prank(blacklistManager);
-        mUSD.blacklistAccounts(accounts);
-
-        address[] memory recipients = new address[](3);
-        recipients[0] = alice;
-        recipients[1] = alice;
-        recipients[2] = alice;
-
-        uint256[] memory amounts = new uint256[](3);
-        amounts[0] = amount;
-        amounts[1] = amount;
-        amounts[2] = amount;
-
-        vm.prank(forcedTransferManager);
-        mUSD.forceTransfers(accounts, recipients, amounts);
-
-        assertEq(mUSD.balanceOf(alice), amount * 3);
+        mUSD.freeze(bob);
     }
 }
