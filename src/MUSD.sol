@@ -101,7 +101,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
     /**
      * @dev   Hook called before approval of mUSD.
      * @param account   The sender's address.
-     * @param spender   The spender address.
+     * @param spender   The spender's address.
      * @param amount    The amount to be approved.
      */
     function _beforeApprove(address account, address spender, uint256 amount) internal view override {
