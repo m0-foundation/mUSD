@@ -160,6 +160,8 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
      * @param amount        The amount to be transferred.
      * @dev   Force transfer is only allowed for frozen accounts.
      * @dev   No `_beforeTransfer` checks apply to forced transfers; ignore checks for paused and frozen states.
+     * @dev   Since this function can only be called by the `FORCED_TRANSFER_MANAGER_ROLE`,
+     *        we do not check if the recipient is frozen.
      */
     function _forceTransfer(address frozenAccount, address recipient, uint256 amount) internal {
         _revertIfInvalidRecipient(recipient);
