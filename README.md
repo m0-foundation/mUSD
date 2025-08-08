@@ -10,7 +10,8 @@ Additionally, **MUSD** includes the following functionality:
 
 ## MUSD System Design
 
-<img width="4702" height="5423" alt="SystemDesign" src="https://github.com/user-attachments/assets/8f5039ba-946c-4949-9768-7bfb125c90d1" />
+<img width="4702" height="5423" alt="SystemDesign" src="https://github.com/user-attachments/assets/4e258277-b791-42a1-9296-ae2923abca58" />
+
 
 ### 🧩 M Extensions Framework
 
