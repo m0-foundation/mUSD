@@ -5,9 +5,6 @@
 # dapp deps
 update:; forge update
 
-# Deployment helpers
-deploy-local :; FOUNDRY_PROFILE=production forge script script/Deploy.s.sol --rpc-url localhost --broadcast -v
-deploy-sepolia :; FOUNDRY_PROFILE=production forge script script/Deploy.s.sol --rpc-url sepolia --broadcast -vvv
 
 # Run slither
 slither :; FOUNDRY_PROFILE=production forge build --build-info --skip '*/test/**' --skip '*/script/**' --force && slither --compile-force-framework foundry --ignore-compile --sarif results.sarif --config-file slither.config.json .
@@ -41,3 +38,29 @@ sizes:
 
 clean:
 	forge clean && rm -rf ./abi && rm -rf ./bytecode && rm -rf ./types
+
+# Deployment helpers
+deploy:
+	FOUNDRY_PROFILE=production PRIVATE_KEY=$(PRIVATE_KEY) \
+	ADMIN=$(ADMIN) PAUSER=$(PAUSER) \
+	YIELD_RECIPIENT=$(YIELD_RECIPIENT) YIELD_RECIPIENT_MANAGER=$(YIELD_RECIPIENT_MANAGER) \
+	FREEZE_MANAGER=$(FREEZE_MANAGER) FORCED_TRANSFER_MANAGER=$(FORCED_TRANSFER_MANAGER) \
+	forge script script/deploy/DeployMUSD.s.sol:DeployMUSD \
+	--rpc-url $(RPC_URL) \
+	--private-key $(PRIVATE_KEY) \
+	--skip test --slow --non-interactive --broadcast --verify
+
+deploy-local: RPC_URL=$(LOCALHOST_RPC_URL)
+deploy-local: deploy
+
+deploy-mainnet: RPC_URL=$(MAINNET_RPC_URL)
+deploy-mainnet: deploy
+
+deploy-linea: RPC_URL=$(LINEA_RPC_URL)
+deploy-linea: deploy
+
+deploy-sepolia: RPC_URL=$(SEPOLIA_RPC_URL)
+deploy-sepolia: deploy
+
+deploy-linea-sepolia: RPC_URL=$(LINEA_SEPOLIA_RPC_URL)
+deploy-linea-sepolia: deploy
