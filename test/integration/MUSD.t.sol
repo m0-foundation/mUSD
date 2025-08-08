@@ -12,6 +12,8 @@ import { BaseIntegrationTest } from "../../lib/evm-m-extensions/test/utils/BaseI
 
 import { MUSDHarness } from "../harness/MUSDHarness.sol";
 
+import { IFreezable } from "../../lib/evm-m-extensions/src/components/IFreezable.sol";
+
 contract MUSDIntegrationTests is BaseIntegrationTest {
     uint256 public mainnetFork;
 
@@ -377,5 +379,106 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         mUSD.claimYield();
 
         assertEq(mUSD.balanceOf(yieldRecipient), yield);
+    }
+
+    function test_freezeManagers() external {
+        uint256 amount = 10e6;
+
+        /*********** SETUP ************/
+
+        // Enable earning for the contract
+        _addToList(EARNERS_LIST, address(mUSD));
+        mUSD.enableEarning();
+
+        // Check initial earning state
+        assertEq(mToken.isEarning(address(mUSD)), true);
+
+        vm.warp(vm.getBlockTimestamp() + 1 days);
+
+        _swapInM(address(mUSD), alice, alice, amount);
+
+        assertEq(mUSD.balanceOf(alice), amount);
+        assertApproxEqAbs(mToken.balanceOf(address(mUSD)), amount, 2);
+
+        vm.warp(vm.getBlockTimestamp() + 10 days);
+
+        assertEq(mUSD.yield(), 11375);
+
+        /*********** DONE SETUP ************/
+
+        vm.prank(freezeManager);
+        mUSD.freeze(alice);
+
+        assertTrue(mUSD.isFrozen(alice));
+
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(IFreezable.AccountFrozen.selector, alice));
+        mUSD.transfer(bob, amount);
+
+        vm.prank(freezeManager);
+        mUSD.unfreeze(alice);
+
+        assertFalse(mUSD.isFrozen(alice));
+
+        vm.prank(alice);
+        mUSD.transfer(bob, amount);
+
+        assertEq(mUSD.balanceOf(alice), 0);
+        assertEq(mUSD.balanceOf(bob), amount);
+
+        vm.prank(freezeManager);
+        mUSD.freeze(bob);
+
+        assertTrue(mUSD.isFrozen(bob));
+
+        vm.prank(bob);
+        vm.expectRevert(abi.encodeWithSelector(IFreezable.AccountFrozen.selector, bob));
+        mUSD.approve(alice, amount);
+
+        vm.prank(freezeManager);
+        mUSD.unfreeze(bob);
+
+        assertFalse(mUSD.isFrozen(bob));
+
+        vm.prank(bob);
+        mUSD.approve(alice, amount);
+
+        assertEq(mUSD.allowance(bob, alice), amount);
+
+        vm.prank(freezeManager);
+        mUSD.freeze(alice);
+
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(IFreezable.AccountFrozen.selector, alice));
+        mUSD.transferFrom(bob, alice, amount);
+
+        vm.prank(bob);
+        vm.expectRevert(abi.encodeWithSelector(IFreezable.AccountFrozen.selector, alice));
+        mUSD.transfer(alice, amount);
+
+        vm.prank(freezeManager);
+        mUSD.unfreeze(alice);
+
+        vm.prank(alice);
+        mUSD.transferFrom(bob, alice, amount);
+
+        assertEq(mUSD.balanceOf(alice), amount);
+        assertEq(mUSD.balanceOf(bob), 0);
+
+        address freezeManager2 = makeAddr("freezeManager2");
+
+        bytes32 freezeManagerRole = mUSD.FREEZE_MANAGER_ROLE();
+
+        vm.prank(admin);
+        mUSD.grantRole(freezeManagerRole, freezeManager2);
+
+        vm.prank(freezeManager2);
+        mUSD.freeze(bob);
+
+        assertTrue(mUSD.isFrozen(bob));
+
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(IFreezable.AccountFrozen.selector, bob));
+        mUSD.transfer(bob, amount);
     }
 }
