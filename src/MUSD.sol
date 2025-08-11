@@ -63,12 +63,12 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
     /* ============ Interactive Functions ============ */
 
     /// @inheritdoc IMUSD
-    function pause() public onlyRole(PAUSER_ROLE) {
+    function pause() external onlyRole(PAUSER_ROLE) {
         _pause();
     }
 
     /// @inheritdoc IMUSD
-    function unpause() public onlyRole(PAUSER_ROLE) {
+    function unpause() external onlyRole(PAUSER_ROLE) {
         _unpause();
     }
 
