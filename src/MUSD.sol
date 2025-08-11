@@ -49,7 +49,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
         address yieldRecipientManager,
         address pauser,
         address forcedTransferManager
-    ) public virtual initializer {
+    ) external initializer {
         if (pauser == address(0)) revert ZeroPauser();
         if (forcedTransferManager == address(0)) revert ZeroForcedTransferManager();
 

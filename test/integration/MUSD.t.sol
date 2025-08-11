@@ -4,11 +4,13 @@ pragma solidity 0.8.26;
 import { IAccessControl } from "../../lib/evm-m-extensions/lib/common/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import { PausableUpgradeable } from "../../lib/evm-m-extensions/lib/common/lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol";
 
-import { Upgrades } from "../../lib/evm-m-extensions/lib/openzeppelin-foundry-upgrades/src/Upgrades.sol";
+import { UnsafeUpgrades } from "../../lib/evm-m-extensions/lib/openzeppelin-foundry-upgrades/src/Upgrades.sol";
 
 import { IMTokenLike } from "../../lib/evm-m-extensions/src/interfaces/IMTokenLike.sol";
 
 import { BaseIntegrationTest } from "../../lib/evm-m-extensions/test/utils/BaseIntegrationTest.sol";
+
+import { MUSD } from "../../src/MUSD.sol";
 
 import { MUSDHarness } from "../harness/MUSDHarness.sol";
 
@@ -32,19 +34,18 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         _fundAccounts();
 
         mUSD = MUSDHarness(
-            Upgrades.deployTransparentProxy(
-                "MUSDHarness.sol:MUSDHarness",
+            UnsafeUpgrades.deployTransparentProxy(
+                address(new MUSDHarness(address(mToken), address(swapFacility))),
                 admin,
                 abi.encodeWithSelector(
-                    MUSDHarness.initialize.selector,
+                    MUSD.initialize.selector,
                     yieldRecipient,
                     admin,
                     freezeManager,
                     yieldRecipientManager,
                     pauser,
                     forcedTransferManager
-                ),
-                mExtensionDeployOptions
+                )
             )
         );
     }
