@@ -266,17 +266,6 @@ contract MUSDUnitTests is BaseUnitTest {
         assertEq(mUSD.balanceOf(bob), amount_);
     }
 
-    /* ============ approve ============ */
-    function test_approve_whenPaused() external {
-        vm.prank(pauser);
-        mUSD.pause();
-
-        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        vm.prank(alice);
-
-        mUSD.approve(bob, 1e6);
-    }
-
     /* ============ forceTransfer ============ */
 
     function test_forceTransfer_revertWhenNotForcedTransferManager() external {

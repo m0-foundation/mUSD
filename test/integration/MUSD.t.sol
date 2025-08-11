@@ -353,10 +353,9 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
         swapFacility.swapInM(address(mUSD), amount, alice);
 
         // test unwrap
-
-        vm.expectRevert(selector);
-
         vm.prank(alice);
+
+        // Approval should not revert when contract is paused
         mUSD.approve(address(swapFacility), amount);
 
         vm.expectRevert(selector);
