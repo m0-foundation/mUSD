@@ -54,6 +54,15 @@ interface IMUSD {
     function unpause() external;
 
     /**
+     * @notice Forcefully transfers tokens from a frozen account to a recipient.
+     * @dev    Can only be called by an account with the FORCED_TRANSFER_MANAGER_ROLE.
+     * @param  frozenAccount The address of the frozen account.
+     * @param  recipient The address of the recipient.
+     * @param  amount The amount of tokens to transfer.
+     */
+    function forceTransfer(address frozenAccount, address recipient, uint256 amount) external;
+
+    /**
      * @notice Forcefully transfers tokens from frozen accounts to recipients.
      * @dev    Can only be called by an account with the FORCED_TRANSFER_MANAGER_ROLE.
      * @param  frozenAccounts The addresses of the frozen accounts.
@@ -65,15 +74,6 @@ interface IMUSD {
         address[] calldata recipients,
         uint256[] calldata amounts
     ) external;
-
-    /**
-     * @notice Forcefully transfers tokens from a frozen account to a recipient.
-     * @dev    Can only be called by an account with the FORCED_TRANSFER_MANAGER_ROLE.
-     * @param  frozenAccount The address of the frozen account.
-     * @param  recipient The address of the recipient.
-     * @param  amount The amount of tokens to transfer.
-     */
-    function forceTransfer(address frozenAccount, address recipient, uint256 amount) external;
 
     /* ============ View/Pure Functions ============ */
 
