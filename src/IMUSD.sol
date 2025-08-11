@@ -39,6 +39,11 @@ interface IMUSD {
     /**
      * @notice Pauses the contract.
      * @dev    Can only be called by an account with the PAUSER_ROLE.
+     * @dev    When paused, wrap/unwrap and transfer of tokens are disabled.
+     *         Approval is still enabled to allow users to change their allowances.
+     *         Addresses with the FORCED_TRANSFER_MANAGER_ROLE can still transfer tokens from frozen accounts.
+     *         Addresses with the FREEZE_MANAGER_ROLE can still freeze accounts.
+     *         Addresses with the YIELD_RECIPIENT_MANAGER_ROLE can still claim yield.
      */
     function pause() external;
 

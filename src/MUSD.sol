@@ -134,8 +134,10 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
     }
 
     /**
-     * @dev    Hook called before claiming yield.
-     * @notice MUST only be callable by the YIELD_RECIPIENT_MANAGER_ROLE.
+     * @dev Hook called before claiming yield.
+     * @dev MUST only be callable by the `YIELD_RECIPIENT_MANAGER_ROLE`.
+     * @dev Addresses with the `YIELD_RECIPIENT_MANAGER_ROLE`
+     *      are still able to claim yield when the contract is paused.
      */
     function _beforeClaimYield() internal view override onlyRole(YIELD_RECIPIENT_MANAGER_ROLE) {}
 
