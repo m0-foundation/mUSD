@@ -17,6 +17,8 @@ contract DeployMUSD is DeployMUSDBase, Script {
         address pauser = vm.envAddress("PAUSER");
         address forcedTransferManager = vm.envAddress("FORCED_TRANSFER_MANAGER");
 
+        console.log("ADMIN: %s: ", admin);
+
         vm.startBroadcast(deployer);
 
         (address implementation, address proxy, address proxyAdmin) = _deployMUSD(
