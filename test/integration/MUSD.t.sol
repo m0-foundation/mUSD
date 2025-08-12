@@ -51,7 +51,7 @@ contract MUSDIntegrationTests is BaseIntegrationTest {
     }
 
     function test_integration_constants() external view {
-        assertEq(mUSD.name(), "MUSD");
+        assertEq(mUSD.name(), "MetaMask USD");
         assertEq(mUSD.symbol(), "mUSD");
         assertEq(mUSD.decimals(), 6);
         assertEq(mUSD.mToken(), address(mToken));
