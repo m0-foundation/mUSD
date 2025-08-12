@@ -24,7 +24,7 @@ contract DeployTests is DeployMUSDBase, Test {
 
     function setUp() public {
         mainnetFork = vm.createFork(vm.envString("MAINNET_RPC_URL"), 23126157); // Block before MUSD deployment
-        lineaFork = vm.createFork(vm.envString("LINEA_RPC_URL"));
+        lineaFork = vm.createFork(vm.envString("LINEA_RPC_URL"), 21952037); // Block before MUSD deployment
     }
 
     /* ============ Deploy ============ */
