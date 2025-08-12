@@ -39,6 +39,11 @@ interface IMUSD {
     /**
      * @notice Pauses the contract.
      * @dev    Can only be called by an account with the PAUSER_ROLE.
+     * @dev    When paused, wrap/unwrap and transfer of tokens are disabled.
+     *         Approval is still enabled to allow users to change their allowances.
+     *         Addresses with the FORCED_TRANSFER_MANAGER_ROLE can still transfer tokens from frozen accounts.
+     *         Addresses with the FREEZE_MANAGER_ROLE can still freeze accounts.
+     *         Addresses with the YIELD_RECIPIENT_MANAGER_ROLE can still claim yield.
      */
     function pause() external;
 
@@ -47,6 +52,15 @@ interface IMUSD {
      * @dev    Can only be called by an account with the PAUSER_ROLE.
      */
     function unpause() external;
+
+    /**
+     * @notice Forcefully transfers tokens from a frozen account to a recipient.
+     * @dev    Can only be called by an account with the FORCED_TRANSFER_MANAGER_ROLE.
+     * @param  frozenAccount The address of the frozen account.
+     * @param  recipient The address of the recipient.
+     * @param  amount The amount of tokens to transfer.
+     */
+    function forceTransfer(address frozenAccount, address recipient, uint256 amount) external;
 
     /**
      * @notice Forcefully transfers tokens from frozen accounts to recipients.
@@ -60,15 +74,6 @@ interface IMUSD {
         address[] calldata recipients,
         uint256[] calldata amounts
     ) external;
-
-    /**
-     * @notice Forcefully transfers tokens from a frozen account to a recipient.
-     * @dev    Can only be called by an account with the FORCED_TRANSFER_MANAGER_ROLE.
-     * @param  frozenAccount The address of the frozen account.
-     * @param  recipient The address of the recipient.
-     * @param  amount The amount of tokens to transfer.
-     */
-    function forceTransfer(address frozenAccount, address recipient, uint256 amount) external;
 
     /* ============ View/Pure Functions ============ */
 

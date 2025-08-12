@@ -7,17 +7,6 @@ contract MUSDHarness is MUSD {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address mToken, address swapFacility) MUSD(mToken, swapFacility) {}
 
-    function initialize(
-        address yieldRecipient,
-        address admin,
-        address freezeManager,
-        address yieldRecipientManager,
-        address pauser,
-        address forcedTransferManager
-    ) public override initializer {
-        super.initialize(yieldRecipient, admin, freezeManager, yieldRecipientManager, pauser, forcedTransferManager);
-    }
-
     function setBalanceOf(address account, uint256 amount) external {
         _getMYieldToOneStorageLocation().balanceOf[account] = amount;
     }

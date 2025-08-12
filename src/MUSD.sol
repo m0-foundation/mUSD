@@ -49,7 +49,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
         address yieldRecipientManager,
         address pauser,
         address forcedTransferManager
-    ) public virtual initializer {
+    ) external initializer {
         if (pauser == address(0)) revert ZeroPauser();
         if (forcedTransferManager == address(0)) revert ZeroForcedTransferManager();
 
@@ -63,12 +63,12 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
     /* ============ Interactive Functions ============ */
 
     /// @inheritdoc IMUSD
-    function pause() public onlyRole(PAUSER_ROLE) {
+    function pause() external onlyRole(PAUSER_ROLE) {
         _pause();
     }
 
     /// @inheritdoc IMUSD
-    function unpause() public onlyRole(PAUSER_ROLE) {
+    function unpause() external onlyRole(PAUSER_ROLE) {
         _unpause();
     }
 
@@ -97,18 +97,6 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
     }
 
     /* ============ Hooks For Internal Interactive Functions ============ */
-
-    /**
-     * @dev   Hook called before approval of mUSD.
-     * @param account The sender's address.
-     * @param spender The spender's address.
-     * @param amount  The amount to be approved.
-     */
-    function _beforeApprove(address account, address spender, uint256 amount) internal view override {
-        _requireNotPaused();
-
-        super._beforeApprove(account, spender, amount);
-    }
 
     /**
      * @dev   Hook called before wrapping M into mUSD.
@@ -146,8 +134,10 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
     }
 
     /**
-     * @dev    Hook called before claiming yield.
-     * @notice MUST only be callable by the YIELD_RECIPIENT_MANAGER_ROLE.
+     * @dev Hook called before claiming yield.
+     * @dev MUST only be callable by the `YIELD_RECIPIENT_MANAGER_ROLE`.
+     * @dev Addresses with the `YIELD_RECIPIENT_MANAGER_ROLE`
+     *      are still able to claim yield when the contract is paused.
      */
     function _beforeClaimYield() internal view override onlyRole(YIELD_RECIPIENT_MANAGER_ROLE) {}
 

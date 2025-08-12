@@ -7,7 +7,7 @@ import { PausableUpgradeable } from "../../lib/evm-m-extensions/lib/common/lib/o
 
 import { IERC20 } from "../../lib/forge-std/src/interfaces/IERC20.sol";
 
-import { Upgrades } from "../../lib/evm-m-extensions/lib/openzeppelin-foundry-upgrades/src/Upgrades.sol";
+import { UnsafeUpgrades } from "../../lib/evm-m-extensions/lib/openzeppelin-foundry-upgrades/src/Upgrades.sol";
 
 import { IERC20Extended } from "../../lib/evm-m-extensions/lib/common/src/interfaces/IERC20Extended.sol";
 import { IMYieldToOne } from "../../lib/evm-m-extensions/src/projects/yieldToOne/IMYieldToOne.sol";
@@ -15,6 +15,7 @@ import { IFreezable } from "../../lib/evm-m-extensions/src/components/IFreezable
 import { IMExtension } from "../../lib/evm-m-extensions/src/interfaces/IMExtension.sol";
 
 import { IMUSD } from "../../src/IMUSD.sol";
+import { MUSD } from "../../src/MUSD.sol";
 
 import { BaseUnitTest } from "../../lib/evm-m-extensions/test/utils/BaseUnitTest.sol";
 
@@ -35,19 +36,18 @@ contract MUSDUnitTests is BaseUnitTest {
         super.setUp();
 
         mUSD = MUSDHarness(
-            Upgrades.deployTransparentProxy(
-                "MUSDHarness.sol:MUSDHarness",
+            UnsafeUpgrades.deployTransparentProxy(
+                address(new MUSDHarness(address(mToken), address(swapFacility))),
                 admin,
                 abi.encodeWithSelector(
-                    MUSDHarness.initialize.selector,
+                    MUSD.initialize.selector,
                     yieldRecipient,
                     admin,
                     freezeManager,
                     yieldRecipientManager,
                     pauser,
                     forcedTransferManager
-                ),
-                mExtensionDeployOptions
+                )
             )
         );
 
@@ -264,17 +264,6 @@ contract MUSDUnitTests is BaseUnitTest {
 
         assertEq(mUSD.balanceOf(alice), 0);
         assertEq(mUSD.balanceOf(bob), amount_);
-    }
-
-    /* ============ approve ============ */
-    function test_approve_whenPaused() external {
-        vm.prank(pauser);
-        mUSD.pause();
-
-        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        vm.prank(alice);
-
-        mUSD.approve(bob, 1e6);
     }
 
     /* ============ forceTransfer ============ */
