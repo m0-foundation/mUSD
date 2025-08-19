@@ -23,8 +23,8 @@ contract DeployTests is DeployMUSDBase, Test {
     address public forcedTransferManager = makeAddr("forcedTransferManager");
 
     function setUp() public {
-        mainnetFork = vm.createFork(vm.envString("MAINNET_RPC_URL"));
-        lineaFork = vm.createFork(vm.envString("LINEA_RPC_URL"));
+        mainnetFork = vm.createFork(vm.envString("MAINNET_RPC_URL"), 23126157); // Block before MUSD deployment
+        lineaFork = vm.createFork(vm.envString("LINEA_RPC_URL"), 21952037); // Block before MUSD deployment
     }
 
     /* ============ Deploy ============ */
@@ -50,7 +50,7 @@ contract DeployTests is DeployMUSDBase, Test {
 
         vm.stopPrank();
 
-        assertEq(proxy, _getCreate3Address(DEPLOYER, _computeSalt(DEPLOYER, "MUSD")));
+        assertEq(proxy, _getCreate3Address(DEPLOYER, _computeSalt(DEPLOYER, "EarnerGamma")));
     }
 
     function testFork_deployLineaMainnet() external {
@@ -74,7 +74,7 @@ contract DeployTests is DeployMUSDBase, Test {
 
         vm.stopPrank();
 
-        assertEq(proxy, _getCreate3Address(DEPLOYER, _computeSalt(DEPLOYER, "MUSD")));
+        assertEq(proxy, _getCreate3Address(DEPLOYER, _computeSalt(DEPLOYER, "EarnerGamma")));
     }
 
     /* ============ Upgrade ============ */

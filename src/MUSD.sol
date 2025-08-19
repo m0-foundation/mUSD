@@ -53,7 +53,7 @@ contract MUSD is IMUSD, MYieldToOne, PausableUpgradeable {
         if (pauser == address(0)) revert ZeroPauser();
         if (forcedTransferManager == address(0)) revert ZeroForcedTransferManager();
 
-        __MYieldToOne_init("MUSD", "mUSD", yieldRecipient, admin, freezeManager, yieldRecipientManager);
+        __MYieldToOne_init("MetaMask USD", "mUSD", yieldRecipient, admin, freezeManager, yieldRecipientManager);
         __Pausable_init();
 
         _grantRole(PAUSER_ROLE, pauser);

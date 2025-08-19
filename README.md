@@ -170,9 +170,15 @@ npm run deploy-linea
 
 ### Deployments
 
-#### Sepolia
+#### Mainnet
 
-MUSD has been deployed to Sepolia at the following addresses:
+| Network  | Implementation                                                                                                           | Proxy                                                                                                                    | Proxy Admin                                                                                                              |
+| -------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| --       |
+| Ethereum | [0xBfC1Bc522BAa5e5Ecb4c6Aa7A68411F6d64f8F68](https://etherscan.io/address/0xBfC1Bc522BAa5e5Ecb4c6Aa7A68411F6d64f8F68)    | [0xacA92E438df0B2401fF60dA7E4337B687a2435DA](https://etherscan.io/address/0xacA92E438df0B2401fF60dA7E4337B687a2435DA)    | [0x685E7F8C9414bfa716b254b349153e2317929ac9](https://etherscan.io/address/0x685E7F8C9414bfa716b254b349153e2317929ac9)    |
+| Linea    | [0xd330353D70a86c427aff320e15951E1df3a3E999](https://lineascan.build/address/0xd330353D70a86c427aff320e15951E1df3a3E999) | [0xacA92E438df0B2401fF60dA7E4337B687a2435DA](https://lineascan.build/address/0xacA92E438df0B2401fF60dA7E4337B687a2435DA) | [0x685E7F8C9414bfa716b254b349153e2317929ac9](https://lineascan.build/address/0x685e7f8c9414bfa716b254b349153e2317929ac9) |
+
+#### Sepolia
 
 | Network | MUSD (Governance aware)                                                                                                       | MUSD (Governanceless)                                                                                                         |
 | ------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |

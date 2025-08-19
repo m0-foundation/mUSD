@@ -24,7 +24,7 @@ import { MUSDHarness } from "../harness/MUSDHarness.sol";
 contract MUSDUnitTests is BaseUnitTest {
     MUSDHarness public mUSD;
 
-    string public constant NAME = "MUSD";
+    string public constant NAME = "MetaMask USD";
     string public constant SYMBOL = "mUSD";
 
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");

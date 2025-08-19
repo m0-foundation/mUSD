@@ -33,7 +33,7 @@ abstract contract DeployMUSDBase is DeployHelpers {
 
         implementation = Upgrades.deployImplementation("MUSD.sol:MUSD", deployOptions);
 
-        bytes32 salt = _computeSalt(deployer, "MUSD");
+        bytes32 salt = _computeSalt(deployer, "EarnerGamma");
 
         proxy = _deployCreate3TransparentProxy(
             implementation,
