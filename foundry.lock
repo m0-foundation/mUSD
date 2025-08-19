@@ -1,0 +1,14 @@
+{
+  "lib/forge-std": {
+    "branch": {
+      "name": "v1",
+      "rev": "77041d2ce690e692d6e03cc812b57d1ddaa4d505"
+    }
+  },
+  "lib/evm-m-extensions": {
+    "branch": {
+      "name": "main",
+      "rev": "909c536deac54de5a5bc3305f57e310c327fb441"
+    }
+  }
+}
