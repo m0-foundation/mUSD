@@ -64,3 +64,20 @@ deploy-sepolia: deploy
 
 deploy-linea-sepolia: RPC_URL=$(LINEA_SEPOLIA_RPC_URL)
 deploy-linea-sepolia: deploy
+
+# Upgrade helpers
+upgrade:
+	FOUNDRY_PROFILE=production PRIVATE_KEY=$(PRIVATE_KEY) \
+	forge script script/upgrade/UpgradeMUSD.s.sol:UpgradeMUSD \
+	--rpc-url $(RPC_URL) \
+	--private-key $(PRIVATE_KEY) \
+	--skip test --slow --non-interactive --broadcast --verify
+
+upgrade-local: RPC_URL=$(LOCALHOST_RPC_URL)
+upgrade-local: upgrade
+
+upgrade-mainnet: RPC_URL=$(MAINNET_RPC_URL)
+upgrade-mainnet: upgrade
+
+upgrade-linea: RPC_URL=$(LINEA_RPC_URL)
+upgrade-linea: upgrade
