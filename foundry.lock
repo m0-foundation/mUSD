@@ -8,7 +8,7 @@
   "lib/forge-std": {
     "branch": {
       "name": "v1",
-      "rev": "77041d2ce690e692d6e03cc812b57d1ddaa4d505"
+      "rev": "ff47d4052a6018d9e5419e5cf013b16ff8006aae"
     }
   }
 }
