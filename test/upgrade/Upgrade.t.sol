@@ -12,11 +12,14 @@ import { UpgradeMUSDBase } from "../../script/upgrade/UpgradeMUSDBase.sol";
 
 import { MUSD } from "../../src/MUSD.sol";
 
+import { IOwnableLike } from "../utils/IOwnableLike.sol";
+
 contract UpgradeTests is UpgradeMUSDBase, Test {
     uint256 public mainnetFork;
     uint256 public lineaFork;
 
     address public constant UPGRADER = 0xF2f1ACbe0BA726fEE8d75f3E32900526874740BB; // M0 deployer address
+    address public newProxyAdminOwner = makeAddr("newProxyAdminOwner");
 
     IERC20 public mToken = IERC20(M_TOKEN);
     MUSD public mUSD = MUSD(MUSD_PROXY);
@@ -42,7 +45,7 @@ contract UpgradeTests is UpgradeMUSDBase, Test {
 
     /* ============ Upgrade ============ */
 
-    function testFork_upgradeEthereumMainnet() external {
+    function testFork_upgradeEthereum() external {
         vm.selectFork(mainnetFork);
 
         vm.deal(UPGRADER, 100 ether);
@@ -53,10 +56,10 @@ contract UpgradeTests is UpgradeMUSDBase, Test {
 
         vm.stopPrank();
 
-        _assertEthereumMainnetUpgrade();
+        _assertEthereumUpgrade();
     }
 
-    function testFork_upgradeLineaMainnet() external {
+    function testFork_upgradeLinea() external {
         vm.selectFork(lineaFork);
 
         vm.deal(UPGRADER, 100 ether);
@@ -67,10 +70,10 @@ contract UpgradeTests is UpgradeMUSDBase, Test {
 
         vm.stopPrank();
 
-        _assertLineaMainnetUpgrade();
+        _assertLineaUpgrade();
     }
 
-    function test_upgradeEthereumMainnetViaProxyAdmin_interface() external {
+    function test_upgradeEthereumViaProxyAdmin_interface() external {
         vm.selectFork(mainnetFork);
 
         address implementation = _prepareMUSDUpgrade(M_TOKEN, SWAP_FACILITY);
@@ -81,10 +84,10 @@ contract UpgradeTests is UpgradeMUSDBase, Test {
 
         vm.stopPrank();
 
-        _assertEthereumMainnetUpgrade();
+        _assertEthereumUpgrade();
     }
 
-    function test_upgradeLineaMainnetViaProxyAdmin_interface() external {
+    function test_upgradeLineaViaProxyAdmin_interface() external {
         vm.selectFork(lineaFork);
 
         address implementation = _prepareMUSDUpgrade(M_TOKEN, SWAP_FACILITY);
@@ -95,10 +98,10 @@ contract UpgradeTests is UpgradeMUSDBase, Test {
 
         vm.stopPrank();
 
-        _assertLineaMainnetUpgrade();
+        _assertLineaUpgrade();
     }
 
-    function test_upgradeEthereumMainnetViaProxyAdmin_calldata() external {
+    function test_upgradeEthereumViaProxyAdmin_calldata() external {
         vm.selectFork(mainnetFork);
 
         address implementation = _prepareMUSDUpgrade(M_TOKEN, SWAP_FACILITY);
@@ -109,10 +112,10 @@ contract UpgradeTests is UpgradeMUSDBase, Test {
 
         vm.stopPrank();
 
-        _assertEthereumMainnetUpgrade();
+        _assertEthereumUpgrade();
     }
 
-    function test_upgradeLineaMainnetViaProxyAdmin_calldata() external {
+    function test_upgradeLineaViaProxyAdmin_calldata() external {
         vm.selectFork(lineaFork);
 
         address implementation = _prepareMUSDUpgrade(M_TOKEN, SWAP_FACILITY);
@@ -123,10 +126,60 @@ contract UpgradeTests is UpgradeMUSDBase, Test {
 
         vm.stopPrank();
 
-        _assertLineaMainnetUpgrade();
+        _assertLineaUpgrade();
     }
 
-    function _assertEthereumMainnetUpgrade() internal view {
+    /* ============ Ownership Transfer ============ */
+
+    function testFork_transferProxyAdminOwnership_ethereum() external {
+        vm.selectFork(mainnetFork);
+
+        vm.deal(UPGRADER, 100 ether);
+        vm.deal(newProxyAdminOwner, 100 ether);
+
+        IOwnableLike proxyAdmin = IOwnableLike(_getAdminAddress(MUSD_PROXY));
+        assertEq(proxyAdmin.owner(), UPGRADER);
+
+        vm.prank(UPGRADER);
+        proxyAdmin.transferOwnership(newProxyAdminOwner);
+
+        assertEq(proxyAdmin.owner(), newProxyAdminOwner);
+
+        vm.startPrank(newProxyAdminOwner);
+
+        _upgradeMUSD(M_TOKEN, SWAP_FACILITY);
+
+        vm.stopPrank();
+
+        _assertEthereumUpgrade();
+    }
+
+    function testFork_transferProxyAdminOwnership_linea() external {
+        vm.selectFork(lineaFork);
+
+        vm.deal(UPGRADER, 100 ether);
+        vm.deal(newProxyAdminOwner, 100 ether);
+
+        IOwnableLike proxyAdmin = IOwnableLike(_getAdminAddress(MUSD_PROXY));
+        assertEq(proxyAdmin.owner(), UPGRADER);
+
+        vm.prank(UPGRADER);
+        proxyAdmin.transferOwnership(newProxyAdminOwner);
+
+        assertEq(proxyAdmin.owner(), newProxyAdminOwner);
+
+        vm.startPrank(newProxyAdminOwner);
+
+        _upgradeMUSD(M_TOKEN, SWAP_FACILITY);
+
+        vm.stopPrank();
+
+        _assertLineaUpgrade();
+    }
+
+    /* ============ Assertions ============ */
+
+    function _assertEthereumUpgrade() internal view {
         assertEq(mUSD.name(), NAME);
         assertEq(mUSD.symbol(), SYMBOL);
         assertEq(mUSD.decimals(), 6);
@@ -148,7 +201,7 @@ contract UpgradeTests is UpgradeMUSDBase, Test {
         }
     }
 
-    function _assertLineaMainnetUpgrade() internal view {
+    function _assertLineaUpgrade() internal view {
         assertEq(mUSD.name(), NAME);
         assertEq(mUSD.symbol(), SYMBOL);
         assertEq(mUSD.decimals(), 6);
