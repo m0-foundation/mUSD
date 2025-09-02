@@ -1,5 +1,7 @@
 ## MUSD
 
+<img width="750" height="750" alt="mUSD-hero" src="https://github.com/user-attachments/assets/4e163205-dcd0-4d7a-939c-a8de87e283d8" />
+
 This M extension is derived from [MYieldToOne](https://github.com/m0-foundation/evm-m-extensions/blob/main/src/projects/yieldToOne/MYieldToOne.sol), an upgradeable ERC20 token contract designed to wrap $M into a non-rebasing token, where all accrued $M yield is claimable by a single designated recipient.
 
 Additionally, **MUSD** includes the following functionality:
