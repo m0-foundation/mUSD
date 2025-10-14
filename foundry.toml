@@ -36,13 +36,17 @@ depth = 250
 localhost = "${LOCALHOST_RPC_URL}"
 mainnet = "${MAINNET_RPC_URL}"
 linea = "${LINEA_RPC_URL}"
+bnb = "${BNB_RPC_URL}"
 sepolia = "${SEPOLIA_RPC_URL}"
 lineaSepolia = "${LINEA_SEPOLIA_RPC_URL}"
+bnbTestnet = "${BNB_TESTNET_RPC_URL}"
 
 [etherscan]
 mainnet = { key = "${ETHERSCAN_API_KEY}", url = "https://api.etherscan.io/v2/api?chainid=1" }
 linea = { key = "${ETHERSCAN_API_KEY}", url = "https://api.etherscan.io/v2/api?chainid=59144" }
+bnb = { key = "${ETHERSCAN_API_KEY}", url = "https://api.etherscan.io/v2/api?chainid=56" }
 sepolia = { key = "${ETHERSCAN_API_KEY}", url = "https://api.etherscan.io/v2/api?chainid=11155111" }
 lineaSepolia = { key = "${ETHERSCAN_API_KEY}", url = "https://api.etherscan.io/v2/api?chainid=59141" }
+bnbTestnet = { key = "${ETHERSCAN_API_KEY}", url = "https://api.etherscan.io/v2/api?chainid=97" }
 
 # See more config options at https://github.com/foundry-rs/foundry/tree/master/crates/config

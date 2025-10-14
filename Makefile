@@ -59,11 +59,17 @@ deploy-mainnet: deploy
 deploy-linea: RPC_URL=$(LINEA_RPC_URL)
 deploy-linea: deploy
 
+deploy-bnb: RPC_URL=$(BNB_RPC_URL)
+deploy-bnb: deploy
+
 deploy-sepolia: RPC_URL=$(SEPOLIA_RPC_URL)
 deploy-sepolia: deploy
 
 deploy-linea-sepolia: RPC_URL=$(LINEA_SEPOLIA_RPC_URL)
 deploy-linea-sepolia: deploy
+
+deploy-bnb-testnet: RPC_URL=$(BNB_TESTNET_RPC_URL)
+deploy-bnb-testnet: deploy
 
 # Upgrade helpers
 upgrade:
