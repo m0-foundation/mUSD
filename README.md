@@ -174,11 +174,11 @@ npm run deploy-linea
 
 #### Mainnet
 
-| Network  | Implementation                                                                                                           | Proxy                                                                                                                    | Proxy Admin                                                                                                              |
-| -------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| --       |
+| Network  | Implementation | Proxy | Proxy Admin |
+| -------- | -------------- |------ |------------ |
 | Ethereum | [0x37A309611E1d278cDdC341E479957Ec8Bc6256CE](https://etherscan.io/address/0x37A309611E1d278cDdC341E479957Ec8Bc6256CE)    | [0xacA92E438df0B2401fF60dA7E4337B687a2435DA](https://etherscan.io/address/0xacA92E438df0B2401fF60dA7E4337B687a2435DA)    | [0x685E7F8C9414bfa716b254b349153e2317929ac9](https://etherscan.io/address/0x685E7F8C9414bfa716b254b349153e2317929ac9)    |
 | Linea    | [0x58a3A9C561591bab0dd11110EcA755EA455f1841](https://lineascan.build/address/0x58a3A9C561591bab0dd11110EcA755EA455f1841) | [0xacA92E438df0B2401fF60dA7E4337B687a2435DA](https://lineascan.build/address/0xacA92E438df0B2401fF60dA7E4337B687a2435DA) | [0x685E7F8C9414bfa716b254b349153e2317929ac9](https://lineascan.build/address/0x685E7F8C9414bfa716b254b349153e2317929ac9) |
+| BNB |[0x23d8162e084aa33d8ef6fcc0ab33f4028a53ee79](https://bscscan.com/address/0x23d8162e084aa33d8ef6fcc0ab33f4028a53ee79) | [0xacA92E438df0B2401fF60dA7E4337B687a2435DA](https://bscscan.com/address/0xacA92E438df0B2401fF60dA7E4337B687a2435DA) | [0x685E7F8C9414bfa716b254b349153e2317929ac9](https://bscscan.com/address/0x685E7F8C9414bfa716b254b349153e2317929ac9) |
 
 #### Sepolia
 
