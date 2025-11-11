@@ -184,4 +184,4 @@ npm run deploy-linea
 
 | Network | MUSD (Governance aware)                                                                                                       | MUSD (Governanceless)                                                                                                         |
 | ------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Sepolia | [0x35f35B91A16fe5b3869f4a2A9c79782DF4443316](https://sepolia.etherscan.io/address/0x35f35b91a16fe5b3869f4a2a9c79782df4443316) | [0xaca92e438df0b2401ff60da7e4337b687a2435da](https://sepolia.etherscan.io/address/0xaca92e438df0b2401ff60da7e4337b687a2435da) |
+| Sepolia | [0x35f35B91A16fe5b3869f4a2A9c79782DF4443316](https://sepolia.etherscan.io/address/0x35f35b91a16fe5b3869f4a2a9c79782df4443316) | [0xACA92E438Df0b2401Ff60Da7e4337b687A2435DA](https://sepolia.etherscan.io/address/0xACA92E438Df0b2401Ff60Da7e4337b687A2435DA) |
